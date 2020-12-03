@@ -1,8 +1,15 @@
+import 'package:ably_cryptocurrency/ably_service.dart';
 import 'package:flutter/material.dart';
 import 'package:ably_cryptocurrency/dashboard.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    FutureProvider<AblyService>(
+      create: (_) => AblyService.init(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

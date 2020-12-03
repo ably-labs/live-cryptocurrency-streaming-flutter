@@ -1,4 +1,6 @@
+import 'package:ably_cryptocurrency/ably_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class DashboardView extends StatefulWidget {
@@ -9,8 +11,12 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
+  Map<DateTime, Coin> coinsData = {};
+  
   @override
   Widget build(BuildContext context) {
+    final ablyService = Provider.of<AblyService>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Ably"),
@@ -29,10 +35,21 @@ class _DashboardViewState extends State<DashboardView> {
         ),
       ),
       body: ListView.builder(
-        itemCount: 2,
+        itemCount: 1,
         itemBuilder: (context, index) {
-          return CoinGraphItem(
-            coin: Coin(name: "bitcoin", price: 19362.5603),
+          return StreamBuilder<Coin>(
+            stream: ablyService.listenToCoinsPrice(),
+            builder: (context, snapshot) {
+              print(snapshot.data);
+              if (snapshot.connectionState == ConnectionState.waiting) return Center();
+              if (snapshot.hasData) {
+                Coin coin = snapshot.data;
+                coinsData.addAll({DateTime.now(): coin});
+                return CoinGraphItem(list: coinsData);
+              }
+
+              return Center();
+            },
           );
         },
       ),
@@ -41,8 +58,8 @@ class _DashboardViewState extends State<DashboardView> {
 }
 
 class CoinGraphItem extends StatefulWidget {
-  CoinGraphItem({Key key, this.coin}) : super(key: key);
-  final Coin coin;
+  CoinGraphItem({Key key, this.list}) : super(key: key);
+  final Map<DateTime, Coin> list;
   @override
   _CoinGraphItemState createState() => _CoinGraphItemState();
 }
@@ -50,13 +67,6 @@ class CoinGraphItem extends StatefulWidget {
 class _CoinGraphItemState extends State<CoinGraphItem> {
   @override
   Widget build(BuildContext context) {
-    List<DateTime> times = [
-      DateTime.now(),
-      DateTime.now().add(Duration(hours: 3)),
-      DateTime.now().add(Duration(hours: 6)),
-      DateTime.now().add(Duration(hours: 9)),
-      DateTime.now().add(Duration(hours: 12))
-    ];
     return Container(
       margin: EdgeInsets.all(30),
       padding: EdgeInsets.all(15),
@@ -74,7 +84,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    "#${widget.coin.name}",
+                    "#${widget.list.values.last.name}",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
@@ -83,7 +93,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                 ],
               ),
               Text(
-                "${widget.coin.price}",
+                "${widget.list.values.last.price}",
                 style: TextStyle(
                   fontSize: 20,
                 ),
@@ -91,8 +101,12 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
             ],
           ),
           SizedBox(height: 25),
+          if(widget.list.length < 20)
+          CircularProgressIndicator(),
+          if(widget.list.length > 20)
           SfCartesianChart(
             // Initialize category axis
+            enableAxisAnimation: false,
             primaryXAxis: DateTimeAxis(
               axisLine: AxisLine(width: 2, color: Colors.white),
               majorTickLines: MajorTickLines(color: Colors.transparent),
@@ -113,13 +127,8 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                 ),
                 width: 3,
                 color: Colors.white,
-                dataSource: [
-                  CoinPriceData(times[0], 1928238.5),
-                  CoinPriceData(times[1], 1729938.5),
-                  CoinPriceData(times[2], 1829938.5),
-                  CoinPriceData(times[3], 1928138.5),
-                  CoinPriceData(times[4], 1928138.5),
-                ],
+                dataSource:
+                    widget.list.keys.map((dateTime) => CoinPriceData(dateTime, widget.list[dateTime].price)).toList().getRange(widget.list.length - 20, widget.list.length).toList(),
                 xValueMapper: (CoinPriceData prices, _) => prices.time,
                 yValueMapper: (CoinPriceData prices, _) => prices.price,
               )
@@ -129,15 +138,6 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
       ),
     );
   }
-}
-
-class Coin {
-  final String name;
-  final double price;
-  Coin({
-    this.name,
-    this.price,
-  });
 }
 
 class CoinPriceData {

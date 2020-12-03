@@ -11,8 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  ably_flutter_plugin: ^1.0.0+dev.2
   cupertino_icons: ^1.0.1
+  provider: ^4.3.2+2
   syncfusion_flutter_charts: ^18.3.52
 
 dev_dependencies:
@@ -22,5 +23,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  assets: 
+  assets:
     - assets/
