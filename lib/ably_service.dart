@@ -29,27 +29,40 @@ class AblyService {
     return AblyService._(_realtime, _clientOptions);
   }
 
-  StreamController<Coin> _pricesStream = StreamController<Coin>();
+  StreamController<Coin> pricesStream = StreamController<Coin>.broadcast();
+
+  Stream<Coin> get _bStream => pricesStream.stream;
+
+  StreamSubscription<Coin> get btcStream => _bStream.where((event) => event.name == 'btc').listen((event) {
+        return event;
+      });
+  StreamSubscription<Coin> get xrpStream => _bStream.where((event) => event.name == 'xrp').listen((event) {
+        return event;
+      });
+  StreamSubscription<Coin> get ethStream => _bStream.where((event) => event.name == 'eth').listen((event) {
+        return event;
+      });
+
+  void listenToStream(List<String> coinTypes) {
+    for (String type in coinTypes) {
+      _listenToCoinsPrice(type);
+    }
+  }
 
   /// Listen to data from Coidesk hub
-  Stream<Coin> listenToCoinsPrice() {
-    ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]btc:usd');
+  void _listenToCoinsPrice(String coinType) async {
+    ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinType:usd');
 
-    channel.on().listen((ably.ChannelStateChange stateChange) {
-      print("Channel state changed: ${stateChange.current}");
-    });
     var messageStream = channel.subscribe();
 
-    Coin coinData = Coin(name: 'bitcoin', price: 0.0);
-    
+    Coin coinData = Coin(name: '', price: 0.0);
+
     messageStream.listen((ably.Message message) {
       if (message.data != null) {
-        coinData = Coin(name: 'bitcoin', price: double.parse('${message.data}'));
+        coinData = Coin(name: coinType, price: double.parse('${message.data}'));
       }
-
-      _pricesStream.add(coinData);
+      pricesStream.add(coinData);
     });
-    return _pricesStream.stream;
   }
 }
 

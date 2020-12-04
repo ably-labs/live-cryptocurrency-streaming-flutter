@@ -11,12 +11,48 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  Map<DateTime, Coin> coinsData = {};
-  
+  Map<DateTime, Coin> btc = {};
+  Map<DateTime, Coin> xrp = {};
+  Map<DateTime, Coin> eth = {};
+
+  List<String> coinTypes = ['btc', 'xrp', 'eth'];
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ablyService = Provider.of<AblyService>(context);
+    if (ablyService != null) {
+      ablyService.listenToStream(coinTypes);
+      ablyService.btcStream.onData((data) {
+        print("${data.name}: ${data.price}");
+        setState(() {
+          btc.addAll({DateTime.now(): data});
+        });
+      });
+
+      ablyService.xrpStream.onData((data) {
+        print("${data.name}: ${data.price}");
+        setState(() {
+          xrp.addAll({DateTime.now(): data});
+        });
+      });
+
+      ablyService.ethStream.onData((data) {
+        print("${data.name}: ${data.price}");
+        setState(() {
+          eth.addAll({DateTime.now(): data});
+        });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ablyService = Provider.of<AblyService>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Ably"),
@@ -34,24 +70,15 @@ class _DashboardViewState extends State<DashboardView> {
           preferredSize: Size.fromHeight(1.0),
         ),
       ),
-      body: ListView.builder(
-        itemCount: 1,
-        itemBuilder: (context, index) {
-          return StreamBuilder<Coin>(
-            stream: ablyService.listenToCoinsPrice(),
-            builder: (context, snapshot) {
-              print(snapshot.data);
-              if (snapshot.connectionState == ConnectionState.waiting) return Center();
-              if (snapshot.hasData) {
-                Coin coin = snapshot.data;
-                coinsData.addAll({DateTime.now(): coin});
-                return CoinGraphItem(list: coinsData);
-              }
-
-              return Center();
-            },
-          );
-        },
+      body: ListView(
+        children: [
+          if(btc.length > 10)
+          CoinGraphItem(list: btc),
+          if(xrp.length > 10)
+          CoinGraphItem(list: xrp),
+          if(xrp.length > 10)
+          CoinGraphItem(list: eth),
+        ],
       ),
     );
   }
@@ -101,12 +128,10 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
             ],
           ),
           SizedBox(height: 25),
-          if(widget.list.length < 20)
-          CircularProgressIndicator(),
-          if(widget.list.length > 20)
           SfCartesianChart(
             // Initialize category axis
             enableAxisAnimation: false,
+
             primaryXAxis: DateTimeAxis(
               axisLine: AxisLine(width: 2, color: Colors.white),
               majorTickLines: MajorTickLines(color: Colors.transparent),
@@ -120,15 +145,10 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
 
             series: <LineSeries<CoinPriceData, DateTime>>[
               LineSeries<CoinPriceData, DateTime>(
-                markerSettings: MarkerSettings(
-                  isVisible: true,
-                  borderColor: Colors.white,
-                  shape: DataMarkerType.circle,
-                ),
                 width: 3,
                 color: Colors.white,
                 dataSource:
-                    widget.list.keys.map((dateTime) => CoinPriceData(dateTime, widget.list[dateTime].price)).toList().getRange(widget.list.length - 20, widget.list.length).toList(),
+                    widget.list.keys.map((dateTime) => CoinPriceData(dateTime, widget.list[dateTime].price)).toList(),
                 xValueMapper: (CoinPriceData prices, _) => prices.time,
                 yValueMapper: (CoinPriceData prices, _) => prices.price,
               )
