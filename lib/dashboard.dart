@@ -28,6 +28,7 @@ class _DashboardViewState extends State<DashboardView> {
     final ablyService = Provider.of<AblyService>(context);
     if (ablyService != null) {
       ablyService.listenToStream(coinTypes);
+
       ablyService.btcStream.onData((data) {
         print("${data.name}: ${data.price}");
         setState(() {
@@ -72,12 +73,9 @@ class _DashboardViewState extends State<DashboardView> {
       ),
       body: ListView(
         children: [
-          if(btc.length > 10)
-          CoinGraphItem(list: btc),
-          if(xrp.length > 10)
-          CoinGraphItem(list: xrp),
-          if(xrp.length > 10)
-          CoinGraphItem(list: eth),
+          if (btc.length > 10) CoinGraphItem(list: btc),
+          if (xrp.length > 10) CoinGraphItem(list: xrp),
+          if (xrp.length > 10) CoinGraphItem(list: eth),
         ],
       ),
     );
@@ -129,14 +127,18 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
           ),
           SizedBox(height: 25),
           SfCartesianChart(
-            // Initialize category axis
-            enableAxisAnimation: false,
+            enableAxisAnimation: true,
 
             primaryXAxis: DateTimeAxis(
+              intervalType: DateTimeIntervalType.minutes,
+              desiredIntervals: 10,
+              visibleMinimum: DateTime.now().subtract(Duration(minutes: 2)),
               axisLine: AxisLine(width: 2, color: Colors.white),
               majorTickLines: MajorTickLines(color: Colors.transparent),
             ),
             primaryYAxis: NumericAxis(
+              desiredIntervals: 6,
+              decimalPlaces: 4,
               axisLine: AxisLine(width: 2, color: Colors.white),
               majorTickLines: MajorTickLines(color: Colors.transparent),
             ),
