@@ -29,40 +29,39 @@ class AblyService {
     return AblyService._(_realtime, _clientOptions);
   }
 
-  StreamController<Coin> pricesStream = StreamController<Coin>.broadcast();
+  static const List<CoinType> _coinTypes = [
+    CoinType.btc,
+    CoinType.eth,
+    CoinType.xrp,
+  ];
 
-  Stream<Coin> get _bStream => pricesStream.stream;
+  /// Listen to data from Coindesk hub
+  Map<String, Stream<Coin>> listenToCoinsPrice() {
+    Map<String, Stream<Coin>> _streams = {};
+    for (CoinType coinType in _coinTypes) {
+      //launch a channel for each coin type
 
-  StreamSubscription<Coin> get btcStream => _bStream.where((event) => event.code == 'btc').listen((event) {
-        return event;
-      });
-  StreamSubscription<Coin> get xrpStream => _bStream.where((event) => event.code == 'xrp').listen((event) {
-        return event;
-      });
-  StreamSubscription<Coin> get ethStream => _bStream.where((event) => event.code == 'eth').listen((event) {
-        return event;
-      });
+      ably.RealtimeChannel channel =
+          _realtime.channels.get('[product:ably-coindesk/crypto-pricing]${coinType.code}:usd');
+      //subscribe to receive channel messages
+      final messageStream = channel.subscribe();
 
-  void listenToStream(List<CoinType> coinTypes) {
-    for (CoinType type in coinTypes) {
-      _listenToCoinsPrice(type);
+      //map each stream event to a Coin
+      _streams.addAll({
+        '${coinType.code}': messageStream.map((message) {
+          print(message.data);
+          if (message.data != null)
+            return Coin(
+              name: coinType.name,
+              code: coinType.code,
+              price: double.parse('${message.data}'),
+              dateTime: DateTime.now(),
+            );
+        }),
+      });
     }
-  }
 
-  /// Listen to data from Coidesk hub
-  void _listenToCoinsPrice(CoinType coinType) async {
-    ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]${coinType.code}:usd');
-
-    var messageStream = channel.subscribe();
-
-    Coin coinData;
-
-    messageStream.listen((ably.Message message) {
-      if (message.data != null) {
-        coinData = Coin(name: coinType.name, code: coinType.code, price: double.parse('${message.data}'));
-        pricesStream.add(coinData);
-      }
-    });
+    return _streams;
   }
 }
 
@@ -105,10 +104,12 @@ extension CointTypeExtension on CoinType {
 class Coin {
   final String name, code;
   final double price;
+  final DateTime dateTime;
 
   Coin({
     this.name,
     this.code,
     this.price,
+    this.dateTime,
   });
 }

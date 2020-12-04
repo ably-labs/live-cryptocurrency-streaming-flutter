@@ -1,8 +1,11 @@
+import 'dart:collection';
+
 import 'package:ably_cryptocurrency/ably_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart' as intl;
+
 class DashboardView extends StatefulWidget {
   DashboardView({Key key}) : super(key: key);
 
@@ -11,47 +14,11 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  Map<DateTime, Coin> btc = {};
-  Map<DateTime, Coin> xrp = {};
-  Map<DateTime, Coin> eth = {};
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final ablyService = Provider.of<AblyService>(context);
-    if (ablyService != null) {
-      ablyService.listenToStream(CoinType.values);
-
-      ablyService.btcStream.onData((data) {
-        print("${data.name}: ${data.price}");
-        setState(() {
-          btc.addAll({DateTime.now(): data});
-        });
-      });
-
-      ablyService.xrpStream.onData((data) {
-        print("${data.name}: ${data.price}");
-        setState(() {
-          xrp.addAll({DateTime.now(): data});
-        });
-      });
-
-      ablyService.ethStream.onData((data) {
-        print("${data.name}: ${data.price}");
-        setState(() {
-          eth.addAll({DateTime.now(): data});
-        });
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final ablyService = Provider.of<AblyService>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Ably"),
@@ -69,25 +36,42 @@ class _DashboardViewState extends State<DashboardView> {
           preferredSize: Size.fromHeight(1.0),
         ),
       ),
-      body: ListView(
-        children: [
-          if (btc.length > 10) CoinGraphItem(list: btc),
-          if (xrp.length > 10) CoinGraphItem(list: xrp),
-          if (eth.length > 10) CoinGraphItem(list: eth),
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: ablyService.listenToCoinsPrice().values.map((Stream<Coin> v) => CoinGraphItem(stream: v)).toList(),
+        ),
       ),
     );
   }
 }
 
 class CoinGraphItem extends StatefulWidget {
-  CoinGraphItem({Key key, this.list}) : super(key: key);
-  final Map<DateTime, Coin> list;
+  CoinGraphItem({Key key, this.stream}) : super(key: key);
+  final Stream<Coin> stream;
   @override
   _CoinGraphItemState createState() => _CoinGraphItemState();
 }
 
 class _CoinGraphItemState extends State<CoinGraphItem> {
+  Queue<Coin> queue = Queue();
+
+  @override
+  void initState() {
+    widget.stream.listen((event) {
+      if (event != null) {
+        setState(() {
+          queue.add(event);
+        });
+        if (queue.length > 100) {
+          queue.removeFirst();
+        }
+
+        print(queue.length);
+      }
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -107,7 +91,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    "#${widget.list.values.last.name}",
+                    "#${queue.last.name}",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
@@ -116,7 +100,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                 ],
               ),
               Text(
-                "${widget.list.values.last.price}",
+                "${queue.last.price}",
                 style: TextStyle(
                   fontSize: 20,
                 ),
@@ -128,8 +112,8 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
             primaryXAxis: DateTimeAxis(
               dateFormat: intl.DateFormat.Hms(),
               intervalType: DateTimeIntervalType.minutes,
-              desiredIntervals: 5,
-              visibleMinimum: DateTime.now().subtract(Duration(minutes: 1)),
+              desiredIntervals: 10,
+              //visibleMinimum: DateTime.now().subtract(Duration(minutes: 2)),
               axisLine: AxisLine(width: 2, color: Colors.white),
               majorTickLines: MajorTickLines(color: Colors.transparent),
             ),
@@ -141,14 +125,13 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
             ),
             plotAreaBorderColor: Colors.white.withOpacity(0.2),
             plotAreaBorderWidth: 0.2,
-            series: <LineSeries<CoinPriceData, DateTime>>[
-              LineSeries<CoinPriceData, DateTime>(
+            series: <LineSeries<Coin, DateTime>>[
+              LineSeries<Coin, DateTime>(
                 width: 3,
                 color: Colors.white,
-                dataSource:
-                    widget.list.keys.map((dateTime) => CoinPriceData(dateTime, widget.list[dateTime].price)).toList(),
-                xValueMapper: (CoinPriceData prices, _) => prices.time,
-                yValueMapper: (CoinPriceData prices, _) => prices.price,
+                dataSource: queue.toList(),
+                xValueMapper: (Coin coin, _) => coin.dateTime,
+                yValueMapper: (Coin coin, _) => coin.price,
               )
             ],
           )
