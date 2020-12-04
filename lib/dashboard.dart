@@ -2,7 +2,7 @@ import 'package:ably_cryptocurrency/ably_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-
+import 'package:intl/intl.dart' as intl;
 class DashboardView extends StatefulWidget {
   DashboardView({Key key}) : super(key: key);
 
@@ -15,8 +15,6 @@ class _DashboardViewState extends State<DashboardView> {
   Map<DateTime, Coin> xrp = {};
   Map<DateTime, Coin> eth = {};
 
-  List<String> coinTypes = ['btc', 'xrp', 'eth'];
-
   @override
   void initState() {
     super.initState();
@@ -27,7 +25,7 @@ class _DashboardViewState extends State<DashboardView> {
     super.didChangeDependencies();
     final ablyService = Provider.of<AblyService>(context);
     if (ablyService != null) {
-      ablyService.listenToStream(coinTypes);
+      ablyService.listenToStream(CoinType.values);
 
       ablyService.btcStream.onData((data) {
         print("${data.name}: ${data.price}");
@@ -75,7 +73,7 @@ class _DashboardViewState extends State<DashboardView> {
         children: [
           if (btc.length > 10) CoinGraphItem(list: btc),
           if (xrp.length > 10) CoinGraphItem(list: xrp),
-          if (xrp.length > 10) CoinGraphItem(list: eth),
+          if (eth.length > 10) CoinGraphItem(list: eth),
         ],
       ),
     );
@@ -127,12 +125,11 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
           ),
           SizedBox(height: 25),
           SfCartesianChart(
-            enableAxisAnimation: true,
-
             primaryXAxis: DateTimeAxis(
+              dateFormat: intl.DateFormat.Hms(),
               intervalType: DateTimeIntervalType.minutes,
-              desiredIntervals: 10,
-              visibleMinimum: DateTime.now().subtract(Duration(minutes: 2)),
+              desiredIntervals: 5,
+              visibleMinimum: DateTime.now().subtract(Duration(minutes: 1)),
               axisLine: AxisLine(width: 2, color: Colors.white),
               majorTickLines: MajorTickLines(color: Colors.transparent),
             ),
@@ -144,7 +141,6 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
             ),
             plotAreaBorderColor: Colors.white.withOpacity(0.2),
             plotAreaBorderWidth: 0.2,
-
             series: <LineSeries<CoinPriceData, DateTime>>[
               LineSeries<CoinPriceData, DateTime>(
                 width: 3,

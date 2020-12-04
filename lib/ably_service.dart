@@ -33,44 +33,82 @@ class AblyService {
 
   Stream<Coin> get _bStream => pricesStream.stream;
 
-  StreamSubscription<Coin> get btcStream => _bStream.where((event) => event.name == 'btc').listen((event) {
+  StreamSubscription<Coin> get btcStream => _bStream.where((event) => event.code == 'btc').listen((event) {
         return event;
       });
-  StreamSubscription<Coin> get xrpStream => _bStream.where((event) => event.name == 'xrp').listen((event) {
+  StreamSubscription<Coin> get xrpStream => _bStream.where((event) => event.code == 'xrp').listen((event) {
         return event;
       });
-  StreamSubscription<Coin> get ethStream => _bStream.where((event) => event.name == 'eth').listen((event) {
+  StreamSubscription<Coin> get ethStream => _bStream.where((event) => event.code == 'eth').listen((event) {
         return event;
       });
 
-  void listenToStream(List<String> coinTypes) {
-    for (String type in coinTypes) {
+  void listenToStream(List<CoinType> coinTypes) {
+    for (CoinType type in coinTypes) {
       _listenToCoinsPrice(type);
     }
   }
 
   /// Listen to data from Coidesk hub
-  void _listenToCoinsPrice(String coinType) async {
-    ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinType:usd');
+  void _listenToCoinsPrice(CoinType coinType) async {
+    ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]${coinType.code}:usd');
 
     var messageStream = channel.subscribe();
 
-    Coin coinData = Coin(name: '', price: 0.0);
+    Coin coinData;
 
     messageStream.listen((ably.Message message) {
       if (message.data != null) {
-        coinData = Coin(name: coinType, price: double.parse('${message.data}'));
+        coinData = Coin(name: coinType.name, code: coinType.code, price: double.parse('${message.data}'));
+        pricesStream.add(coinData);
       }
-      pricesStream.add(coinData);
     });
   }
 }
 
+enum CoinType {
+  btc,
+  eth,
+  xrp,
+}
+
+extension CointTypeExtension on CoinType {
+  String get name {
+    switch (this) {
+      case CoinType.btc:
+        return 'Bitcoin';
+        break;
+      case CoinType.eth:
+        return 'Ethurum';
+        break;
+      case CoinType.xrp:
+        return 'Ripple';
+        break;
+    }
+  }
+
+  String get code {
+    switch (this) {
+      case CoinType.btc:
+        return 'btc';
+        break;
+      case CoinType.eth:
+        return 'eth';
+        break;
+      case CoinType.xrp:
+        return 'xrp';
+        break;
+    }
+  }
+}
+
 class Coin {
-  final String name;
+  final String name, code;
   final double price;
+
   Coin({
     this.name,
+    this.code,
     this.price,
   });
 }
