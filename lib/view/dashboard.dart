@@ -17,7 +17,10 @@ class DashboardView extends StatefulWidget {
   _DashboardViewState createState() => _DashboardViewState();
 }
 
-class _DashboardViewState extends State<DashboardView> {
+class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveClientMixin {
+  @override
+  get wantKeepAlive => true;
+
   /// open a page for live chatting
   void _navigateToChatRoom() {
     Navigator.of(context).push(
@@ -29,6 +32,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final ablyService = Provider.of<AblyService>(context);
 
     return Scaffold(
@@ -101,8 +105,6 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
         if (queue.length > 100) {
           queue.removeFirst();
         }
-
-        print(queue.length);
       }
     });
     super.initState();

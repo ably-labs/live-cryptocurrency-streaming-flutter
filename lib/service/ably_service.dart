@@ -16,6 +16,18 @@ class Coin {
   });
 }
 
+class ChatMessage {
+  final String content;
+  final DateTime dateTime;
+  final bool isWriter;
+
+  ChatMessage({
+    this.content,
+    this.dateTime,
+    this.isWriter,
+  });
+}
+
 const Map<String, String> _coinTypes = {
   "btc": "Bitcoin",
   "eth": "Ethurum",
@@ -28,6 +40,8 @@ class AblyService {
 
   /// initialize a realtime instance
   final ably.Realtime _realtime;
+
+  ably.RealtimeChannel _chatChannel;
 
   /// to get the connection status of the realtime instance
   Stream<ably.ConnectionStateChange> get connection => _realtime.connection.on();
@@ -49,6 +63,26 @@ class AblyService {
     return AblyService._(_realtime, _clientOptions);
   }
 
+  Stream<ChatMessage> listenToChatMessages() {
+    _chatChannel = _realtime.channels.get('public-chat');
+
+    var messageStream = _chatChannel.subscribe();
+
+    return messageStream.map((message) {
+      return ChatMessage(
+        content: message.data,
+        dateTime: message.timestamp,
+        isWriter: message.name == "user"
+      );
+    });
+  }
+
+  Future sendMessage(String content) async {
+    _realtime.channels.get('public-chat');
+
+    await _chatChannel.publish(data: content, name: "user");
+  }
+
   /// Listen to cryptocurrency prices from Coindesk hub
   Map<String, Stream<Coin>> listenToCoinsPrice() {
     Map<String, Stream<Coin>> _streams = {};
@@ -67,7 +101,7 @@ class AblyService {
               name: _coinTypes[coinType],
               code: coinType,
               price: double.parse('${message.data}'),
-              dateTime: DateTime.now(),
+              dateTime: message.timestamp,
             );
         }),
       });

@@ -6,11 +6,8 @@ import 'package:ably_cryptocurrency/service/ably_service.dart';
 import 'package:ably_cryptocurrency/view/dashboard.dart';
 
 void main() {
-  runApp(
-    MyApp(),
-  );
+  runApp(MyApp());
 }
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
