@@ -2,8 +2,8 @@ import 'dart:collection';
 
 import 'package:ably_cryptocurrency/service/ably_service.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:provider/provider.dart';
 
 class ChatView extends StatefulWidget {
   const ChatView({Key key}) : super(key: key);
@@ -20,7 +20,7 @@ class _ChatViewState extends State<ChatView> {
   void didChangeDependencies() async {
     final ablyService = Provider.of<AblyService>(context);
 
-    final chatUpdates = ablyService.listenToChatMessages();
+    final chatUpdates = ablyService.getChatUpdates();
 
     chatUpdates.addListener(() {
       if (chatUpdates.message != null)
@@ -74,8 +74,10 @@ class _ChatViewState extends State<ChatView> {
                     decoration: InputDecoration(
                       hintText: "Type a message...",
                       hintStyle: TextStyle(color: Colors.white),
-                      border: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white)),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white)),
                     ),
                   ),
                 ),
@@ -113,13 +115,16 @@ class ChatMessageBubble extends StatelessWidget {
     return Container(
       margin: EdgeInsets.all(15),
       child: Column(
-        crossAxisAlignment: isWriter ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            isWriter ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.all(10),
             alignment: Alignment.centerLeft,
             decoration: BoxDecoration(
-              color: isWriter ? Theme.of(context).primaryColor.withOpacity(0.5) : Colors.white12,
+              color: isWriter
+                  ? Theme.of(context).primaryColor.withOpacity(0.5)
+                  : Colors.white12,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(isWriter ? radius : 0),
                 bottomRight: Radius.circular(isWriter ? 0 : radius),
