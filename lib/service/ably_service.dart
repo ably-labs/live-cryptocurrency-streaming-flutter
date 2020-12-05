@@ -69,11 +69,7 @@ class AblyService {
     var messageStream = _chatChannel.subscribe();
 
     return messageStream.map((message) {
-      return ChatMessage(
-        content: message.data,
-        dateTime: message.timestamp,
-        isWriter: message.name == "user"
-      );
+      return ChatMessage(content: message.data, dateTime: message.timestamp, isWriter: message.name == "user");
     });
   }
 
@@ -95,14 +91,13 @@ class AblyService {
 
       //map each stream event to a Coin inside a list of streams
       _streams.addAll({
-        '$coinType': messageStream.map((message) {
-          if (message.data != null)
-            return Coin(
-              name: _coinTypes[coinType],
-              code: coinType,
-              price: double.parse('${message.data}'),
-              dateTime: message.timestamp,
-            );
+        '$coinType': messageStream.where((event) => event.data != null).map((message) {
+          return Coin(
+            name: _coinTypes[coinType],
+            code: coinType,
+            price: double.parse('${message.data}'),
+            dateTime: message.timestamp,
+          );
         }),
       });
     }
