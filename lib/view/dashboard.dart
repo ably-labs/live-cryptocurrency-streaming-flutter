@@ -17,7 +17,7 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  final Map<String, CoinUpdates> prices = {};
+  final List<CoinUpdates> prices = [];
 
   /// open a page for live chatting
   void _navigateToChatRoom() {
@@ -61,31 +61,26 @@ class _DashboardViewState extends State<DashboardView> {
         ),
       ),
       body: ablyService == null
-          ? Center()
+          ? SizedBox()
           : Center(
               child: StreamProvider<ably.ConnectionStateChange>.value(
                 value: ablyService.connection,
                 child: Consumer<ably.ConnectionStateChange>(
                   builder: (context, connection, child) {
-                    if (connection == null) {
-                      return Center();
-                    } else if (connection.event ==
-                        ably.ConnectionEvent.connected) {
+                    if (connection != null && connection.event == ably.ConnectionEvent.connected) {
                       return child;
-                    }
-                    return CircularProgressIndicator();
+                    } else
+                      return CircularProgressIndicator();
                   },
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: prices.isNotEmpty
-                        ? ListView.builder(
-                            itemCount: prices.values.length,
-                            itemBuilder: (context, index) {
-                              return CoinGraphItem(
-                                  coinUpdates: prices.values.toList()[index]);
-                            },
-                          )
-                        : Center(),
+                    child: ListView.builder(
+                      itemCount: prices.length,
+                      itemBuilder: (context, index) {
+                        final coinUpdates = prices[index];
+                        return CoinGraphItem(coinUpdates: coinUpdates);
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -101,22 +96,27 @@ class CoinGraphItem extends StatefulWidget {
   _CoinGraphItemState createState() => _CoinGraphItemState();
 }
 
-class _CoinGraphItemState extends State<CoinGraphItem> {
+class _CoinGraphItemState extends State<CoinGraphItem> with AutomaticKeepAliveClientMixin {
+  @override
+  get wantKeepAlive => true;
+
   Queue<Coin> queue = Queue();
   VoidCallback _listener;
 
   @override
   void initState() {
-    widget.coinUpdates.addListener(_listener = () {
-      setState(() {
-        queue.add(widget.coinUpdates.coin);
-      });
+    widget.coinUpdates.addListener(
+      _listener = () {
+        setState(() {
+          queue.add(widget.coinUpdates.coin);
+        });
 
-      print(widget.coinUpdates.coin);
-      if (queue.length > 100) {
-        queue.removeFirst();
-      }
-    });
+        print(widget.coinUpdates.coin);
+        if (queue.length > 100) {
+          queue.removeFirst();
+        }
+      },
+    );
 
     super.initState();
   }
@@ -138,12 +138,11 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Container(
       margin: EdgeInsets.all(30),
       padding: EdgeInsets.all(15),
-      decoration: BoxDecoration(
-          color: Color(0xffEDEDED).withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8.0)),
+      decoration: BoxDecoration(color: Color(0xffEDEDED).withOpacity(0.05), borderRadius: BorderRadius.circular(8.0)),
       child: queue.isEmpty
           ? Center()
           : Column(
