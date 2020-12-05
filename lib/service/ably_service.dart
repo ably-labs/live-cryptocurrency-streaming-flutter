@@ -64,8 +64,8 @@ class AblyService {
         '$coinType': messageStream.map((message) {
           if (message.data != null)
             return Coin(
-              name: coinType,
-              code: _coinTypes[coinType],
+              name: _coinTypes[coinType],
+              code: coinType,
               price: double.parse('${message.data}'),
               dateTime: DateTime.now(),
             );

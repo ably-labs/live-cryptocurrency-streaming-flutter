@@ -1,11 +1,14 @@
 import 'dart:collection';
-
-import 'package:ably_cryptocurrency/ably_service.dart';
+import 'package:ably_cryptocurrency/view/chat.dart';
+import 'package:ably_cryptocurrency/view/twitter_feed.dart';
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
+
+import 'package:ably_cryptocurrency/service/ably_service.dart';
 
 class DashboardView extends StatefulWidget {
   DashboardView({Key key}) : super(key: key);
@@ -15,6 +18,15 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
+  /// open a page for live chatting
+  void _navigateToChatRoom() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChatView(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ablyService = Provider.of<AblyService>(context);
@@ -25,7 +37,7 @@ class _DashboardViewState extends State<DashboardView> {
         actions: [
           IconButton(
             icon: Icon(Icons.chat_bubble),
-            onPressed: () {},
+            onPressed: _navigateToChatRoom,
           )
         ],
         bottom: PreferredSize(
@@ -96,6 +108,15 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
     super.initState();
   }
 
+  /// open a page that shows a list of tweets with the cryptocurrency tag
+  void _navigateToTwitterFeed(String hashtag) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TwitterFeedView(hashtag: hashtag.toLowerCase()),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -109,21 +130,25 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Image.asset(
-                          'assets/icon_awesome_twitter.png',
-                          height: 20,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          "#${queue.last.name}",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                    FlatButton(
+                      onPressed: () => _navigateToTwitterFeed(queue.last.name),
+                      textColor: Colors.white,
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/icon_awesome_twitter.png',
+                            height: 20,
                           ),
-                        ),
-                      ],
+                          SizedBox(width: 10),
+                          Text(
+                            "#${queue.last.name}",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Text(
                       "${queue.last.price}",

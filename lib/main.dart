@@ -1,7 +1,9 @@
-import 'package:ably_cryptocurrency/ably_service.dart';
 import 'package:flutter/material.dart';
-import 'package:ably_cryptocurrency/dashboard.dart';
+
 import 'package:provider/provider.dart';
+
+import 'package:ably_cryptocurrency/service/ably_service.dart';
+import 'package:ably_cryptocurrency/view/dashboard.dart';
 
 void main() {
   runApp(
@@ -16,9 +18,11 @@ class MyApp extends StatelessWidget {
     return FutureProvider<AblyService>(
       create: (_) => AblyService.init(),
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Ably',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primaryColor: Color(0xffFF5416),
+          accentColor: Color(0xffFF5416),
           scaffoldBackgroundColor: Color(0xff292831),
           appBarTheme: AppBarTheme(
             elevation: 0.0,
