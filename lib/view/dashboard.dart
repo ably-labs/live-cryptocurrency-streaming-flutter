@@ -74,12 +74,12 @@ class _DashboardViewState extends State<DashboardView> {
                   },
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: ListView.builder(
-                      itemCount: prices.length,
-                      itemBuilder: (context, index) {
-                        final coinUpdates = prices[index];
-                        return CoinGraphItem(coinUpdates: coinUpdates);
-                      },
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          for (CoinUpdates update in prices) CoinGraphItem(coinUpdates: update),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -96,12 +96,10 @@ class CoinGraphItem extends StatefulWidget {
   _CoinGraphItemState createState() => _CoinGraphItemState();
 }
 
-class _CoinGraphItemState extends State<CoinGraphItem> with AutomaticKeepAliveClientMixin {
-  @override
-  get wantKeepAlive => true;
-
+class _CoinGraphItemState extends State<CoinGraphItem> {
   Queue<Coin> queue = Queue();
   VoidCallback _listener;
+  ChartSeriesController _chartSeriesController;
 
   @override
   void initState() {
@@ -111,7 +109,6 @@ class _CoinGraphItemState extends State<CoinGraphItem> with AutomaticKeepAliveCl
           queue.add(widget.coinUpdates.coin);
         });
 
-        print(widget.coinUpdates.coin);
         if (queue.length > 100) {
           queue.removeFirst();
         }
@@ -138,7 +135,6 @@ class _CoinGraphItemState extends State<CoinGraphItem> with AutomaticKeepAliveCl
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Container(
       margin: EdgeInsets.all(30),
       padding: EdgeInsets.all(15),
@@ -180,11 +176,11 @@ class _CoinGraphItemState extends State<CoinGraphItem> with AutomaticKeepAliveCl
                 ),
                 SizedBox(height: 25),
                 SfCartesianChart(
+                  enableAxisAnimation: true,
                   primaryXAxis: DateTimeAxis(
                     dateFormat: intl.DateFormat.Hms(),
                     intervalType: DateTimeIntervalType.minutes,
                     desiredIntervals: 10,
-                    //visibleMinimum: DateTime.now().subtract(Duration(minutes: 2)),
                     axisLine: AxisLine(width: 2, color: Colors.white),
                     majorTickLines: MajorTickLines(color: Colors.transparent),
                   ),
@@ -198,11 +194,16 @@ class _CoinGraphItemState extends State<CoinGraphItem> with AutomaticKeepAliveCl
                   plotAreaBorderWidth: 0.2,
                   series: <LineSeries<Coin, DateTime>>[
                     LineSeries<Coin, DateTime>(
-                      width: 3,
-                      color: Colors.white,
+                      animationDuration: 0.0,
+
+                      width: 2,
+                      color: Theme.of(context).primaryColor,
                       dataSource: queue.toList(),
                       xValueMapper: (Coin coin, _) => coin.dateTime,
                       yValueMapper: (Coin coin, _) => coin.price,
+                      // onRendererCreated: (ChartSeriesController controller) {
+                      //   _chartSeriesController = controller;
+                      // },
                     )
                   ],
                 )

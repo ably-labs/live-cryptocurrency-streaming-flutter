@@ -20,11 +20,16 @@ class _ChatViewState extends State<ChatView> {
   void didChangeDependencies() async {
     final ablyService = Provider.of<AblyService>(context);
 
-    ablyService.listenToChatMessages().listen((event) {
-      if (mounted)
+    final chatUpdates = ablyService.listenToChatMessages();
+
+    chatUpdates.addListener(() {
+      if (chatUpdates.message != null)
         setState(() {
-          messages.addFirst(event);
+          messages.addFirst(chatUpdates.message);
         });
+      if (messages.length > 100) {
+        messages.removeFirst();
+      }
     });
 
     super.didChangeDependencies();
@@ -85,7 +90,7 @@ class _ChatViewState extends State<ChatView> {
               ],
             ),
           ),
-          SizedBox(height: 50)
+          SizedBox(height: 30)
         ],
       ),
     );

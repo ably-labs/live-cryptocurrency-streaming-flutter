@@ -29,6 +29,25 @@ class ChatMessage {
   });
 }
 
+class CoinUpdates extends ChangeNotifier {
+  Coin _coin;
+  Coin get coin => _coin;
+  updateCoin(value) {
+    this._coin = value;
+    notifyListeners();
+  }
+}
+
+class ChatUpdates extends ChangeNotifier {
+  ChatMessage _message;
+  ChatMessage get message => _message;
+  updateChat(value) {
+    this._message = value;
+    notifyListeners();
+  }
+}
+
+
 const Map<String, String> _coinTypes = {
   "btc": "Bitcoin",
   "eth": "Ethurum",
@@ -61,18 +80,24 @@ class AblyService {
     return AblyService._(_realtime, _clientOptions);
   }
 
-  Stream<ChatMessage> listenToChatMessages() {
+  ChatUpdates listenToChatMessages() {
+    ChatUpdates _chatUpdates = ChatUpdates();
+
     _chatChannel = _realtime.channels.get('public-chat');
 
     var messageStream = _chatChannel.subscribe();
 
-    return messageStream.map((message) {
-      return ChatMessage(
-        content: message.data,
-        dateTime: message.timestamp,
-        isWriter: message.name == "${_realtime.clientId}",
+    messageStream.listen((message) {
+      _chatUpdates.updateChat(
+        ChatMessage(
+          content: message.data,
+          dateTime: message.timestamp,
+          isWriter: message.name == "${_realtime.clientId}",
+        ),
       );
     });
+
+    return _chatUpdates;
   }
 
   Future sendMessage(String content) async {
@@ -109,14 +134,5 @@ class AblyService {
     }
 
     return _coinUpdates.values.toList();
-  }
-}
-
-class CoinUpdates extends ChangeNotifier {
-  Coin _coin;
-  Coin get coin => _coin;
-  updateCoin(value) {
-    this._coin = value;
-    notifyListeners();
   }
 }
