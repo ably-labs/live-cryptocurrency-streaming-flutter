@@ -1,14 +1,13 @@
 import 'dart:collection';
-import 'package:ably_cryptocurrency/view/chat.dart';
-import 'package:ably_cryptocurrency/view/twitter_feed.dart';
-import 'package:flutter/material.dart';
-
-import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:intl/intl.dart' as intl;
-import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
 
 import 'package:ably_cryptocurrency/service/ably_service.dart';
+import 'package:ably_cryptocurrency/view/chat.dart';
+import 'package:ably_cryptocurrency/view/twitter_feed.dart';
+import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
+import 'package:provider/provider.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class DashboardView extends StatefulWidget {
   DashboardView({Key key}) : super(key: key);
@@ -35,7 +34,7 @@ class _DashboardViewState extends State<DashboardView> {
     final ablyService = Provider.of<AblyService>(context, listen: false);
     if (ablyService != null && prices.isEmpty) {
       setState(() {
-        prices.addAll(ablyService.listenToCoinsPrice());
+        prices.addAll(ablyService.getCoinUpdates());
       });
     }
   }
@@ -70,7 +69,8 @@ class _DashboardViewState extends State<DashboardView> {
                   builder: (context, connection, child) {
                     if (connection == null) {
                       return Center();
-                    } else if (connection.event == ably.ConnectionEvent.connected) {
+                    } else if (connection.event ==
+                        ably.ConnectionEvent.connected) {
                       return child;
                     }
                     return CircularProgressIndicator();
@@ -81,7 +81,8 @@ class _DashboardViewState extends State<DashboardView> {
                         ? ListView.builder(
                             itemCount: prices.values.length,
                             itemBuilder: (context, index) {
-                              return CoinGraphItem(coin: prices.values.toList()[index]);
+                              return CoinGraphItem(
+                                  coinUpdates: prices.values.toList()[index]);
                             },
                           )
                         : Center(),
@@ -94,29 +95,36 @@ class _DashboardViewState extends State<DashboardView> {
 }
 
 class CoinGraphItem extends StatefulWidget {
-  CoinGraphItem({Key key, this.coin}) : super(key: key);
-  final CoinUpdates coin;
+  CoinGraphItem({Key key, this.coinUpdates}) : super(key: key);
+  final CoinUpdates coinUpdates;
   @override
   _CoinGraphItemState createState() => _CoinGraphItemState();
 }
 
 class _CoinGraphItemState extends State<CoinGraphItem> {
   Queue<Coin> queue = Queue();
+  VoidCallback _listener;
 
   @override
   void initState() {
-    widget.coin.addListener(() {
+    widget.coinUpdates.addListener(_listener = () {
       setState(() {
-        queue.add(widget.coin.coin);
+        queue.add(widget.coinUpdates.coin);
       });
 
-      print(widget.coin.coin);
+      print(widget.coinUpdates.coin);
       if (queue.length > 100) {
         queue.removeFirst();
       }
     });
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.coinUpdates.removeListener(_listener);
+    super.dispose();
   }
 
   /// open a page that shows a list of tweets with the cryptocurrency tag
@@ -133,7 +141,9 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
     return Container(
       margin: EdgeInsets.all(30),
       padding: EdgeInsets.all(15),
-      decoration: BoxDecoration(color: Color(0xffEDEDED).withOpacity(0.05), borderRadius: BorderRadius.circular(8.0)),
+      decoration: BoxDecoration(
+          color: Color(0xffEDEDED).withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8.0)),
       child: queue.isEmpty
           ? Center()
           : Column(
@@ -152,7 +162,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                           ),
                           SizedBox(width: 10),
                           Text(
-                            "#${widget.coin.coin.name}",
+                            "#${widget.coinUpdates.coin.name}",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
@@ -162,7 +172,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                       ),
                     ),
                     Text(
-                      "${widget.coin.coin.price}",
+                      "${widget.coinUpdates.coin.price}",
                       style: TextStyle(
                         fontSize: 20,
                       ),

@@ -45,13 +45,15 @@ class AblyService {
   ably.RealtimeChannel _chatChannel;
 
   /// to get the connection status of the realtime instance
-  Stream<ably.ConnectionStateChange> get connection => _realtime.connection.on();
+  Stream<ably.ConnectionStateChange> get connection =>
+      _realtime.connection.on();
 
   /// private constructor
   AblyService._(this._realtime, this._clientOptions);
 
   static Future<AblyService> init() async {
-    final ably.ClientOptions _clientOptions = ably.ClientOptions.fromKey(APIKey);
+    final ably.ClientOptions _clientOptions =
+        ably.ClientOptions.fromKey(APIKey);
 
     /// initialize real time object
     final _realtime = ably.Realtime(options: _clientOptions);
@@ -82,15 +84,15 @@ class AblyService {
   }
 
   /// Listen to cryptocurrency prices from Coindesk hub
-  Map<String, CoinUpdates> listenToCoinsPrice() {
-    Map<String, CoinUpdates> _streams = {};
+  Map<String, CoinUpdates> getCoinUpdates() {
+    Map<String, CoinUpdates> _CoinUpdates = {};
 
     for (String coinType in _coinTypes.keys) {
-      
-      _streams.addAll({'$coinType': CoinUpdates()});
+      _CoinUpdates.addAll({'$coinType': CoinUpdates()});
 
       //launch a channel for each coin type
-      ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinType:usd');
+      ably.RealtimeChannel channel = _realtime.channels
+          .get('[product:ably-coindesk/crypto-pricing]$coinType:usd');
 
       //subscribe to receive channel messages
       final messageStream = channel.subscribe();
@@ -98,7 +100,7 @@ class AblyService {
       //map each stream event to a Coin inside a list of streams
 
       messageStream.where((event) => event.data != null).listen((message) {
-        _streams['$coinType'].updateCoin(
+        _CoinUpdates['$coinType'].updateCoin(
           Coin(
             name: _coinTypes[coinType],
             code: coinType,
@@ -109,7 +111,7 @@ class AblyService {
       });
     }
 
-    return _streams;
+    return _CoinUpdates;
   }
 }
 
