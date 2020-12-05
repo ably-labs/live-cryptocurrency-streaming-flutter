@@ -21,6 +21,8 @@ class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveCl
   @override
   get wantKeepAlive => true;
 
+  final Map<String, Stream<Coin>> prices = {};
+
   /// open a page for live chatting
   void _navigateToChatRoom() {
     Navigator.of(context).push(
@@ -28,6 +30,18 @@ class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveCl
         builder: (_) => ChatView(),
       ),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ablyService = Provider.of<AblyService>(context);
+    if (ablyService != null) {
+      setState(() {
+        prices.addAll(ablyService.listenToCoinsPrice());
+        print(prices);
+      });
+    }
   }
 
   @override
@@ -68,15 +82,14 @@ class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveCl
                   },
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: ablyService
-                            .listenToCoinsPrice()
-                            .values
-                            .map((Stream<Coin> coinPrices) => CoinGraphItem(stream: coinPrices))
-                            .toList(),
-                      ),
-                    ),
+                    child: prices.isNotEmpty
+                        ? ListView.builder(
+                            itemCount: prices.values.length,
+                            itemBuilder: (context, index) {
+                              return CoinGraphItem(stream: prices.values.toList()[index]);
+                            },
+                          )
+                        : Center(),
                   ),
                 ),
               ),
@@ -99,9 +112,10 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
   void initState() {
     widget.stream.listen((event) {
       if (event != null) {
-        setState(() {
-          queue.add(event);
-        });
+        if (mounted)
+          setState(() {
+            queue.add(event);
+          });
         if (queue.length > 100) {
           queue.removeFirst();
         }
