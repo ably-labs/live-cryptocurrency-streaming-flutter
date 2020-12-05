@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ably_cryptocurrency/config.dart';
 import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
+import 'package:flutter/material.dart';
 
 class Coin {
   final String name, code;
@@ -52,9 +53,6 @@ class AblyService {
   static Future<AblyService> init() async {
     final ably.ClientOptions _clientOptions = ably.ClientOptions.fromKey(APIKey);
 
-    /// this line is optional, but usseful to have more detailed logs
-    _clientOptions.logLevel = ably.LogLevel.verbose;
-
     /// initialize real time object
     final _realtime = ably.Realtime(options: _clientOptions);
 
@@ -69,20 +67,28 @@ class AblyService {
     var messageStream = _chatChannel.subscribe();
 
     return messageStream.map((message) {
-      return ChatMessage(content: message.data, dateTime: message.timestamp, isWriter: message.name == "user");
+      return ChatMessage(
+        content: message.data,
+        dateTime: message.timestamp,
+        isWriter: message.name == "${_realtime.clientId}",
+      );
     });
   }
 
   Future sendMessage(String content) async {
     _realtime.channels.get('public-chat');
 
-    await _chatChannel.publish(data: content, name: "user");
+    await _chatChannel.publish(data: content, name: "${_realtime.clientId}");
   }
 
   /// Listen to cryptocurrency prices from Coindesk hub
-  Map<String, Stream<Coin>> listenToCoinsPrice() {
-    Map<String, Stream<Coin>> _streams = {};
+  Map<String, CoinUpdates> listenToCoinsPrice() {
+    Map<String, CoinUpdates> _streams = {};
+
     for (String coinType in _coinTypes.keys) {
+      
+      _streams.addAll({'$coinType': CoinUpdates()});
+
       //launch a channel for each coin type
       ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinType:usd');
 
@@ -90,18 +96,28 @@ class AblyService {
       final messageStream = channel.subscribe();
 
       //map each stream event to a Coin inside a list of streams
-      _streams.addAll({
-        '$coinType': messageStream.where((event) => event.data != null).map((message) {
-          return Coin(
+
+      messageStream.where((event) => event.data != null).listen((message) {
+        _streams['$coinType'].updateCoin(
+          Coin(
             name: _coinTypes[coinType],
             code: coinType,
             price: double.parse('${message.data}'),
             dateTime: message.timestamp,
-          );
-        }),
+          ),
+        );
       });
     }
 
     return _streams;
+  }
+}
+
+class CoinUpdates extends ChangeNotifier {
+  Coin _coin;
+  Coin get coin => _coin;
+  updateCoin(value) {
+    this._coin = value;
+    notifyListeners();
   }
 }

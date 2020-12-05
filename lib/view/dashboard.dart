@@ -17,11 +17,8 @@ class DashboardView extends StatefulWidget {
   _DashboardViewState createState() => _DashboardViewState();
 }
 
-class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveClientMixin {
-  @override
-  get wantKeepAlive => true;
-
-  final Map<String, Stream<Coin>> prices = {};
+class _DashboardViewState extends State<DashboardView> {
+  final Map<String, CoinUpdates> prices = {};
 
   /// open a page for live chatting
   void _navigateToChatRoom() {
@@ -35,18 +32,16 @@ class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveCl
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final ablyService = Provider.of<AblyService>(context);
-    if (ablyService != null) {
+    final ablyService = Provider.of<AblyService>(context, listen: false);
+    if (ablyService != null && prices.isEmpty) {
       setState(() {
         prices.addAll(ablyService.listenToCoinsPrice());
-        print(prices);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final ablyService = Provider.of<AblyService>(context);
 
     return Scaffold(
@@ -86,7 +81,7 @@ class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveCl
                         ? ListView.builder(
                             itemCount: prices.values.length,
                             itemBuilder: (context, index) {
-                              return CoinGraphItem(stream: prices.values.toList()[index]);
+                              return CoinGraphItem(coin: prices.values.toList()[index]);
                             },
                           )
                         : Center(),
@@ -99,8 +94,8 @@ class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveCl
 }
 
 class CoinGraphItem extends StatefulWidget {
-  CoinGraphItem({Key key, this.stream}) : super(key: key);
-  final Stream<Coin> stream;
+  CoinGraphItem({Key key, this.coin}) : super(key: key);
+  final CoinUpdates coin;
   @override
   _CoinGraphItemState createState() => _CoinGraphItemState();
 }
@@ -110,17 +105,17 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
 
   @override
   void initState() {
-    widget.stream.listen((event) {
-      if (event != null) {
-        if (mounted)
-          setState(() {
-            queue.add(event);
-          });
-        if (queue.length > 100) {
-          queue.removeFirst();
-        }
+    widget.coin.addListener(() {
+      setState(() {
+        queue.add(widget.coin.coin);
+      });
+
+      print(widget.coin.coin);
+      if (queue.length > 100) {
+        queue.removeFirst();
       }
     });
+
     super.initState();
   }
 
@@ -157,7 +152,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                           ),
                           SizedBox(width: 10),
                           Text(
-                            "#${queue.last.name}",
+                            "#${widget.coin.coin.name}",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
@@ -167,7 +162,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                       ),
                     ),
                     Text(
-                      "${queue.last.price}",
+                      "${widget.coin.coin.price}",
                       style: TextStyle(
                         fontSize: 20,
                       ),
@@ -206,10 +201,4 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
             ),
     );
   }
-}
-
-class CoinPriceData {
-  CoinPriceData(this.time, this.price);
-  final DateTime time;
-  final double price;
 }
