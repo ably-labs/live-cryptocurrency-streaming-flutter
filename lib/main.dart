@@ -5,30 +5,31 @@ import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    FutureProvider<AblyService>(
-      create: (_) => AblyService.init(),
-      child: MyApp(),
-    ),
+    MyApp(),
   );
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primaryColor: Color(0xffFF5416),
-        scaffoldBackgroundColor: Color(0xff292831),
-        appBarTheme: AppBarTheme(
-          elevation: 0.0,
+    //initialize AblyService for the whole app
+    return FutureProvider<AblyService>(
+      create: (_) => AblyService.init(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primaryColor: Color(0xffFF5416),
+          scaffoldBackgroundColor: Color(0xff292831),
+          appBarTheme: AppBarTheme(
+            elevation: 0.0,
+          ),
+          textTheme: TextTheme(
+            bodyText1: TextStyle(color: Colors.white),
+            bodyText2: TextStyle(color: Colors.white),
+          ),
         ),
-        textTheme: TextTheme(
-          bodyText1: TextStyle(color: Colors.white),
-          bodyText2: TextStyle(color: Colors.white),
-        ),
+        home: DashboardView(),
       ),
-      home: DashboardView(),
     );
   }
 }
