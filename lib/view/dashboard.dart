@@ -1,13 +1,14 @@
 import 'dart:collection';
+import 'package:flutter/material.dart';
+
+import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
+import 'package:intl/intl.dart' as intl;
+import 'package:provider/provider.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 import 'package:ably_cryptocurrency/service/ably_service.dart';
 import 'package:ably_cryptocurrency/view/chat.dart';
 import 'package:ably_cryptocurrency/view/twitter_feed.dart';
-import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
-import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 class DashboardView extends StatefulWidget {
   DashboardView({Key key}) : super(key: key);
@@ -99,7 +100,6 @@ class CoinGraphItem extends StatefulWidget {
 class _CoinGraphItemState extends State<CoinGraphItem> {
   Queue<Coin> queue = Queue();
   VoidCallback _listener;
-  ChartSeriesController _chartSeriesController;
 
   @override
   void initState() {
@@ -195,15 +195,11 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                   series: <LineSeries<Coin, DateTime>>[
                     LineSeries<Coin, DateTime>(
                       animationDuration: 0.0,
-
                       width: 2,
                       color: Theme.of(context).primaryColor,
                       dataSource: queue.toList(),
                       xValueMapper: (Coin coin, _) => coin.dateTime,
                       yValueMapper: (Coin coin, _) => coin.price,
-                      // onRendererCreated: (ChartSeriesController controller) {
-                      //   _chartSeriesController = controller;
-                      // },
                     )
                   ],
                 )
