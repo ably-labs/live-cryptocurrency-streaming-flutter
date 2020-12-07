@@ -12,12 +12,11 @@ dependencies:
   flutter:
     sdk: flutter
   ably_flutter_plugin: ^1.0.0+dev.2
-  cupertino_icons: ^1.0.1
-  http: ^0.12.2
   intl: ^0.16.1
   provider: ^4.3.2+2
   syncfusion_flutter_charts: ^18.3.52
-  crypto: ^2.1.5
+  tweet_ui: ^2.4.1
+  twitter_api: ^0.1.2
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'package:ably_cryptocurrency/service/twitter_api_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
@@ -68,8 +69,7 @@ class _DashboardViewState extends State<DashboardView> {
                 value: ablyService.connection,
                 child: Consumer<ably.ConnectionStateChange>(
                   builder: (context, connection, child) {
-                    if (connection != null &&
-                        connection.event == ably.ConnectionEvent.connected) {
+                    if (connection != null && connection.event == ably.ConnectionEvent.connected) {
                       return child;
                     } else
                       return CircularProgressIndicator();
@@ -79,8 +79,7 @@ class _DashboardViewState extends State<DashboardView> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          for (CoinUpdates update in prices)
-                            CoinGraphItem(coinUpdates: update),
+                          for (CoinUpdates update in prices) CoinGraphItem(coinUpdates: update),
                         ],
                       ),
                     ),
@@ -130,7 +129,12 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
   void _navigateToTwitterFeed(String hashtag) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => TwitterFeedView(hashtag: hashtag.toLowerCase()),
+        builder: (_) => Provider<TwitterAPIService>(
+          create: (_) => TwitterAPIService(queryTag: hashtag),
+          child: TwitterFeedView(
+            hashtag: hashtag.toLowerCase(),
+          ),
+        ),
       ),
     );
   }
@@ -140,9 +144,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
     return Container(
       margin: EdgeInsets.all(30),
       padding: EdgeInsets.all(15),
-      decoration: BoxDecoration(
-          color: Color(0xffEDEDED).withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8.0)),
+      decoration: BoxDecoration(color: Color(0xffEDEDED).withOpacity(0.05), borderRadius: BorderRadius.circular(8.0)),
       child: queue.isEmpty
           ? Center()
           : Column(
