@@ -10,6 +10,8 @@ class TwitterAPIService {
 
   static const String path = "search/tweets.json";
 
+// todo: What is the return type if this function? We won't do it like that twitter package and
+// make everything dynamic
   getTweetsQuery() async {
     try {
       final _twitterOauth = new twitterApi(
@@ -19,6 +21,9 @@ class TwitterAPIService {
         tokenSecret: OAuthTokenSecret,
       );
 
+// todo: The Twitter package is very sloppy in on defining a return type to its functions. In reallity
+// the return type is a `Future<Response>` where Response is from the package http. We should use the correct
+// return type even if that means we have to add the http package
       // Make the request to twitter
       Future twitterRequest = _twitterOauth.getTwitterRequest(
         // Http Method
@@ -30,7 +35,10 @@ class TwitterAPIService {
           "q": queryTag,
         },
       );
+// Possibly we should limit the amount of tweets that we can get returned. Probably that's something
+// that can be set by using the options
 
+      /// todo: why do you separate the wait from the call to the function above?
       final response = await twitterRequest;
 
       return json.decode(response.body);

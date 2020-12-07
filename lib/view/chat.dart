@@ -20,6 +20,10 @@ class _ChatViewState extends State<ChatView> {
   void didChangeDependencies() async {
     final ablyService = Provider.of<AblyService>(context);
 
+// todo: this can be call multiple times.
+// either we make sure that the following lines are only called once or we have
+// to cancel the underlying Stream inside getChatUpdates and remove the listener that
+// was already added.
     final chatUpdates = ablyService.getChatUpdates();
 
     chatUpdates.addListener(() {
@@ -50,7 +54,8 @@ class _ChatViewState extends State<ChatView> {
       body: Column(
         children: [
           Flexible(
-            fit: FlexFit.loose,
+            fit: FlexFit
+                .loose, // todo: this is the default of `fit` so we don't have to set it.
             child: ListView.builder(
               reverse: true,
               itemCount: messages.length,

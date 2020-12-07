@@ -47,6 +47,8 @@ class ChatUpdates extends ChangeNotifier {
   }
 }
 
+/// todo: To add more currencies we only have to extent this map? right?
+/// we should write this in a comment here if this is the case
 const Map<String, String> _coinTypes = {
   "btc": "Bitcoin",
   "eth": "Ethurum",
@@ -54,10 +56,12 @@ const Map<String, String> _coinTypes = {
 };
 
 class AblyService {
+// todo: For what can this property be used?
   /// initialize client options for your Ably account
   final ably.ClientOptions _clientOptions;
 
   /// initialize a realtime instance
+// todo: I think this comment does not describe what this property is
   final ably.Realtime _realtime;
 
   ably.RealtimeChannel _chatChannel;
@@ -82,8 +86,12 @@ class AblyService {
   }
 
   ChatUpdates getChatUpdates() {
+    //todo: is it correct that we create a new instance everytime this function is called?
     ChatUpdates _chatUpdates = ChatUpdates();
 
+    /// todo: should we really execute a `get` everytimw this function is called?
+    /// wouldn't a `??=``make more sense here?
+    /// Is it correct that the following lines are executed everytime this function is called?
     _chatChannel = _realtime.channels.get('public-chat');
 
     var messageStream = _chatChannel.subscribe();
@@ -101,14 +109,19 @@ class AblyService {
     return _chatUpdates;
   }
 
+  /// todo: add api doc
   Future sendMessage(String content) async {
     _realtime.channels.get('public-chat');
 
     await _chatChannel.publish(data: content, name: "${_realtime.clientId}");
   }
 
-  /// Listen to cryptocurrency prices from Coindesk hub
+  /// Start listening to cryptocurrency prices from Coindesk hub
+  /// although it should not happen
   List<CoinUpdates> getCoinUpdates() {
+// todo: Do we still need this to be a map?
+    /// we should make sure that we either allways return the same List or
+    /// cancel the Stream subscription below before we do a new one
     Map<String, CoinUpdates> _coinUpdates = {};
 
     for (String coinType in _coinTypes.keys) {
