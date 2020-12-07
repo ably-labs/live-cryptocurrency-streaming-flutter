@@ -17,6 +17,7 @@ dependencies:
   intl: ^0.16.1
   provider: ^4.3.2+2
   syncfusion_flutter_charts: ^18.3.52
+  crypto: ^2.1.5
 
 dev_dependencies:
   flutter_test:
