@@ -47,7 +47,6 @@ class ChatUpdates extends ChangeNotifier {
   }
 }
 
-
 const Map<String, String> _coinTypes = {
   "btc": "Bitcoin",
   "eth": "Ethurum",
@@ -64,13 +63,15 @@ class AblyService {
   ably.RealtimeChannel _chatChannel;
 
   /// to get the connection status of the realtime instance
-  Stream<ably.ConnectionStateChange> get connection => _realtime.connection.on();
+  Stream<ably.ConnectionStateChange> get connection =>
+      _realtime.connection.on();
 
   /// private constructor
   AblyService._(this._realtime, this._clientOptions);
 
   static Future<AblyService> init() async {
-    final ably.ClientOptions _clientOptions = ably.ClientOptions.fromKey(APIKey);
+    final ably.ClientOptions _clientOptions =
+        ably.ClientOptions.fromKey(APIKey);
 
     /// initialize real time object
     final _realtime = ably.Realtime(options: _clientOptions);
@@ -80,7 +81,7 @@ class AblyService {
     return AblyService._(_realtime, _clientOptions);
   }
 
-  ChatUpdates listenToChatMessages() {
+  ChatUpdates getChatUpdates() {
     ChatUpdates _chatUpdates = ChatUpdates();
 
     _chatChannel = _realtime.channels.get('public-chat');
@@ -114,7 +115,8 @@ class AblyService {
       _coinUpdates.addAll({'$coinType': CoinUpdates()});
 
       //launch a channel for each coin type
-      ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinType:usd');
+      ably.RealtimeChannel channel = _realtime.channels
+          .get('[product:ably-coindesk/crypto-pricing]$coinType:usd');
 
       //subscribe to receive channel messages
       final messageStream = channel.subscribe();

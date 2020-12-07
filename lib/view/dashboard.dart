@@ -68,7 +68,8 @@ class _DashboardViewState extends State<DashboardView> {
                 value: ablyService.connection,
                 child: Consumer<ably.ConnectionStateChange>(
                   builder: (context, connection, child) {
-                    if (connection != null && connection.event == ably.ConnectionEvent.connected) {
+                    if (connection != null &&
+                        connection.event == ably.ConnectionEvent.connected) {
                       return child;
                     } else
                       return CircularProgressIndicator();
@@ -78,7 +79,8 @@ class _DashboardViewState extends State<DashboardView> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          for (CoinUpdates update in prices) CoinGraphItem(coinUpdates: update),
+                          for (CoinUpdates update in prices)
+                            CoinGraphItem(coinUpdates: update),
                         ],
                       ),
                     ),
@@ -138,7 +140,9 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
     return Container(
       margin: EdgeInsets.all(30),
       padding: EdgeInsets.all(15),
-      decoration: BoxDecoration(color: Color(0xffEDEDED).withOpacity(0.05), borderRadius: BorderRadius.circular(8.0)),
+      decoration: BoxDecoration(
+          color: Color(0xffEDEDED).withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8.0)),
       child: queue.isEmpty
           ? Center()
           : Column(
