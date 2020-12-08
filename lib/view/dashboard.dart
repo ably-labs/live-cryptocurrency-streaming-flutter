@@ -32,8 +32,13 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   @override
-  void didChangeDependencies() async {
-    super.didChangeDependencies();
+  void initState() {
+    getCoinPrices();
+    super.initState();
+  }
+
+
+  Future getCoinPrices() async {
     ablyService = await getIt.getAsync<AblyService>();
     if (ablyService != null && prices.isEmpty) {
       setState(() {
@@ -126,7 +131,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
   }
 
   /// open a page that shows a list of tweets with the cryptocurrency tag
-  void _navigateToTwitterFeed(String hashtag) {    
+  void _navigateToTwitterFeed(String hashtag) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => TwitterFeedView(

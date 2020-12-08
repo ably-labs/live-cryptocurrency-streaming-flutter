@@ -49,11 +49,20 @@ class ChatUpdates extends ChangeNotifier {
 
 /// TODO: To add more currencies we only have to extent this map? right?
 /// we should write this in a comment here if this is the case
-const Map<String, String> _coinTypes = {
-  "btc": "Bitcoin",
-  "eth": "Ethurum",
-  "xrp": "Ripple",
-};
+const List<Map> _coinTypes = [
+  {
+    "name": "Bitcoin",
+    "code": "btc",
+  },
+  {
+    "name": "Ethurum",
+    "code": "eth",
+  },
+  {
+    "name": "Ripple",
+    "code": "xrp",
+  },
+];
 
 class AblyService {
 // TODO: For what can this property be used?
@@ -67,15 +76,13 @@ class AblyService {
   ably.RealtimeChannel _chatChannel;
 
   /// to get the connection status of the realtime instance
-  Stream<ably.ConnectionStateChange> get connection =>
-      _realtime.connection.on();
+  Stream<ably.ConnectionStateChange> get connection => _realtime.connection.on();
 
   /// private constructor
   AblyService._(this._realtime, this._clientOptions);
 
   static Future<AblyService> init() async {
-    final ably.ClientOptions _clientOptions =
-        ably.ClientOptions.fromKey(APIKey);
+    final ably.ClientOptions _clientOptions = ably.ClientOptions.fromKey(APIKey);
 
     /// initialize real time object
     final _realtime = ably.Realtime(options: _clientOptions);
@@ -95,7 +102,7 @@ class AblyService {
     print(_chatChannel.name);
 
     messageStream.listen((message) {
-       print(message);
+      print(message);
       _chatUpdates.updateChat(
         ChatMessage(
           content: message.data,
@@ -118,28 +125,27 @@ class AblyService {
   /// Start listening to cryptocurrency prices from Coindesk hub
   /// although it should not happen
   List<CoinUpdates> getCoinUpdates() {
-// TODO: Do we still need this to be a map?
     /// we should make sure that we either allways return the same List or
     /// cancel the Stream subscription below before we do a new one
-    Map<String, CoinUpdates> _coinUpdates = {};
+    List<CoinUpdates> _coinUpdates = List.generate(_coinTypes.length, (index) => CoinUpdates());
 
-    for (String coinType in _coinTypes.keys) {
-      _coinUpdates.addAll({'$coinType': CoinUpdates()});
+    for (int i = 0; i < _coinUpdates.length; i++) {
+
+      String coinName = _coinTypes[i]['name'];
+      String coinCode = _coinTypes[i]['code'];
 
       //launch a channel for each coin type
-      ably.RealtimeChannel channel = _realtime.channels
-          .get('[product:ably-coindesk/crypto-pricing]$coinType:usd');
+      ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinCode:usd');
 
       //subscribe to receive channel messages
       final messageStream = channel.subscribe();
 
       //map each stream event to a Coin inside a list of streams
-
       messageStream.where((event) => event.data != null).listen((message) {
-        _coinUpdates['$coinType'].updateCoin(
+        _coinUpdates[i].updateCoin(
           Coin(
-            name: _coinTypes[coinType],
-            code: coinType,
+            name: coinName,
+            code: coinCode,
             price: double.parse('${message.data}'),
             dateTime: message.timestamp,
           ),
@@ -147,6 +153,6 @@ class AblyService {
       });
     }
 
-    return _coinUpdates.values.toList();
+    return _coinUpdates;
   }
 }
