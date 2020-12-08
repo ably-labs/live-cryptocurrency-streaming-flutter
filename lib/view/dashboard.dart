@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'package:ably_cryptocurrency/main.dart';
-import 'package:ably_cryptocurrency/service/twitter_api_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
@@ -11,40 +10,16 @@ import 'package:ably_cryptocurrency/service/ably_service.dart';
 import 'package:ably_cryptocurrency/view/chat.dart';
 import 'package:ably_cryptocurrency/view/twitter_feed.dart';
 
-class DashboardView extends StatefulWidget {
+class DashboardView extends StatelessWidget {
   DashboardView({Key key}) : super(key: key);
 
-  @override
-  _DashboardViewState createState() => _DashboardViewState();
-}
-
-class _DashboardViewState extends State<DashboardView> {
-  final List<CoinUpdates> prices = [];
-  AblyService ablyService;
-
   /// open a page for live chatting
-  void _navigateToChatRoom() {
+  void _navigateToChatRoom(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ChatView(),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    getCoinPrices();
-    super.initState();
-  }
-
-
-  Future getCoinPrices() async {
-    ablyService = await getIt.getAsync<AblyService>();
-    if (ablyService != null && prices.isEmpty) {
-      setState(() {
-        prices.addAll(ablyService.getCoinUpdates());
-      });
-    }
   }
 
   @override
@@ -55,7 +30,7 @@ class _DashboardViewState extends State<DashboardView> {
         actions: [
           IconButton(
             icon: Icon(Icons.chat_bubble),
-            onPressed: _navigateToChatRoom,
+            onPressed: () => _navigateToChatRoom(context),
           )
         ],
         bottom: PreferredSize(
@@ -66,11 +41,49 @@ class _DashboardViewState extends State<DashboardView> {
           preferredSize: Size.fromHeight(1.0),
         ),
       ),
-      body: FutureBuilder(
-          future: getIt.allReady(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+      body: GraphsList(),
+    );
+  }
+}
 
+class GraphsList extends StatefulWidget {
+  const GraphsList({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _GraphsListState createState() => _GraphsListState();
+}
+
+class _GraphsListState extends State<GraphsList> {
+  final List<CoinUpdates> prices = [];
+  AblyService ablyService;
+
+  @override
+  void initState() {
+    getCoinPrices();
+    super.initState();
+  }
+
+  Future getCoinPrices() async {
+    ablyService = getIt.get<AblyService>();
+
+    if (ablyService != null && prices.isEmpty) {
+      if (mounted)
+        setState(() {
+          prices.addAll(ablyService.getCoinUpdates());
+        });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: getIt.allReady(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData)
+            return Center(child: CircularProgressIndicator());
+          else
             return Center(
               child: StreamBuilder<ably.ConnectionStateChange>(
                 stream: ablyService.connection,
@@ -86,13 +99,15 @@ class _DashboardViewState extends State<DashboardView> {
                         ),
                       ),
                     );
-                  } else
+                  } else if (snapshot.data.event == ably.ConnectionEvent.failed) {
+                    return Center(child: Text("No connection."));
+                  } else {
                     return CircularProgressIndicator();
+                  }
                 },
               ),
             );
-          }),
-    );
+        });
   }
 }
 

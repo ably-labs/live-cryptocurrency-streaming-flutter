@@ -123,14 +123,10 @@ class AblyService {
   }
 
   /// Start listening to cryptocurrency prices from Coindesk hub
-  /// although it should not happen
   List<CoinUpdates> getCoinUpdates() {
-    /// we should make sure that we either allways return the same List or
-    /// cancel the Stream subscription below before we do a new one
     List<CoinUpdates> _coinUpdates = List.generate(_coinTypes.length, (index) => CoinUpdates());
 
     for (int i = 0; i < _coinUpdates.length; i++) {
-
       String coinName = _coinTypes[i]['name'];
       String coinCode = _coinTypes[i]['code'];
 
