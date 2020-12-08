@@ -1,14 +1,15 @@
 import 'dart:collection';
+import 'package:ably_cryptocurrency/main.dart';
+import 'package:ably_cryptocurrency/service/twitter_api_service.dart';
+import 'package:flutter/material.dart';
+
+import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
+import 'package:intl/intl.dart' as intl;
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 import 'package:ably_cryptocurrency/service/ably_service.dart';
-import 'package:ably_cryptocurrency/service/twitter_api_service.dart';
 import 'package:ably_cryptocurrency/view/chat.dart';
 import 'package:ably_cryptocurrency/view/twitter_feed.dart';
-import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
-import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 class DashboardView extends StatefulWidget {
   DashboardView({Key key}) : super(key: key);
@@ -19,6 +20,7 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   final List<CoinUpdates> prices = [];
+  AblyService ablyService;
 
   /// open a page for live chatting
   void _navigateToChatRoom() {
@@ -30,13 +32,11 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
-    final ablyService = Provider.of<AblyService>(context, listen: false);
+    ablyService = await getIt.getAsync<AblyService>();
     if (ablyService != null && prices.isEmpty) {
       setState(() {
-        /// why do you use an `addAll` and not an assignment?
-        /// if this function is called a second time it would double the number of graphs or not?
         prices.addAll(ablyService.getCoinUpdates());
       });
     }
@@ -44,8 +44,6 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
-    final ablyService = Provider.of<AblyService>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Ably"),
@@ -63,35 +61,32 @@ class _DashboardViewState extends State<DashboardView> {
           preferredSize: Size.fromHeight(1.0),
         ),
       ),
-      body: ablyService == null
-          ? SizedBox()
-          : Center(
-              child: StreamProvider<ably.ConnectionStateChange>.value(
-                value: ablyService.connection,
-                child: Consumer<ably.ConnectionStateChange>(
-                  builder: (context, connection, child) {
-                    if (connection != null &&
-                        connection.event == ably.ConnectionEvent.connected) {
-                      return child;
-                    } else
-                      return CircularProgressIndicator();
-                  },
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          for (CoinUpdates update in prices)
+      body: FutureBuilder(
+          future: getIt.allReady(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
 
-                            /// todo: always put the body of a for like this in a new line. it's much better to read
-                            CoinGraphItem(coinUpdates: update),
-                        ],
+            return Center(
+              child: StreamBuilder<ably.ConnectionStateChange>(
+                stream: ablyService.connection,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data.event == ably.ConnectionEvent.connected) {
+                    return Align(
+                      alignment: Alignment.topCenter,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            for (CoinUpdates update in prices) CoinGraphItem(coinUpdates: update),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                ),
+                    );
+                  } else
+                    return CircularProgressIndicator();
+                },
               ),
-            ),
+            );
+          }),
     );
   }
 }
@@ -131,17 +126,11 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
   }
 
   /// open a page that shows a list of tweets with the cryptocurrency tag
-  void _navigateToTwitterFeed(String hashtag) {
+  void _navigateToTwitterFeed(String hashtag) {    
     Navigator.of(context).push(
       MaterialPageRoute(
-        /// todo: why using here a provider to provide an object that is only used in the targe page
-        /// better to creat the instance in `initState` and you don't need any provier easier to follow.
-        /// I searched several minutes to find out where you create the `TwitterAPIService`
-        builder: (_) => Provider<TwitterAPIService>(
-          create: (_) => TwitterAPIService(queryTag: hashtag),
-          child: TwitterFeedView(
-            hashtag: hashtag.toLowerCase(),
-          ),
+        builder: (_) => TwitterFeedView(
+          hashtag: hashtag.toLowerCase(),
         ),
       ),
     );
@@ -152,22 +141,15 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
     return Container(
       margin: EdgeInsets.all(30),
       padding: EdgeInsets.all(15),
-      decoration: BoxDecoration(
-          color: Color(0xffEDEDED).withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8.0)),
+      decoration: BoxDecoration(color: Color(0xffEDEDED).withOpacity(0.05), borderRadius: BorderRadius.circular(8.0)),
       child: queue.isEmpty
           ? Center()
-
-          /// todo: should here a progressindicator be added inside the Center?
           : Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     FlatButton(
-                      /// tood:I don't like the way the coin name is accessed here
-                      /// better add a `name` proptery to the `CoinUpdate` class, or do it like below
-                      /// with the `Text`
                       onPressed: () => _navigateToTwitterFeed(queue.last.name),
                       textColor: Colors.white,
                       child: Row(
@@ -178,7 +160,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                           ),
                           SizedBox(width: 10),
                           Text(
-                            "#${widget.coinUpdates.coin.name}", // todo like above
+                            "#${widget.coinUpdates.coin.name}",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,

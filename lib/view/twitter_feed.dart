@@ -1,6 +1,7 @@
+
+import 'package:ably_cryptocurrency/main.dart';
 import 'package:ably_cryptocurrency/service/twitter_api_service.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:tweet_ui/models/api/tweet.dart';
 import 'package:tweet_ui/tweet_ui.dart';
 
@@ -13,7 +14,6 @@ class TwitterFeedView extends StatefulWidget {
 }
 
 class _TwitterFeedViewState extends State<TwitterFeedView> {
-  /// todo: shouldn't this s be a `List<String> here?
   List tweetsJson = [];
   String errorMessage = '';
 
@@ -25,15 +25,14 @@ class _TwitterFeedViewState extends State<TwitterFeedView> {
 
   // Get tweets from Twitter Service
   Future getTweets() async {
-    final twitterService =
-        Provider.of<TwitterAPIService>(context, listen: false);
+    final twitterService = TwitterAPIService(queryTag: widget.hashtag);
+
     try {
       final response = await twitterService.getTweetsQuery();
       setState(() {
         tweetsJson.addAll(response['statuses']);
       });
     } catch (error) {
-      print(error);
       setState(() {
         errorMessage = 'Error retrieving tweets, please try again later.';
       });

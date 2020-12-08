@@ -1,9 +1,9 @@
 import 'dart:collection';
 
+import 'package:ably_cryptocurrency/main.dart';
 import 'package:ably_cryptocurrency/service/ably_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:provider/provider.dart';
 
 class ChatView extends StatefulWidget {
   const ChatView({Key key}) : super(key: key);
@@ -15,32 +15,36 @@ class ChatView extends StatefulWidget {
 class _ChatViewState extends State<ChatView> {
   Queue<ChatMessage> messages = Queue();
   TextEditingController _controller = TextEditingController();
+  ChatUpdates chatUpdates;
+  VoidCallback _listener;
 
   @override
   void didChangeDependencies() async {
-    final ablyService = Provider.of<AblyService>(context);
+    chatUpdates = getIt.get<AblyService>().getChatUpdates();
 
-// todo: this can be call multiple times.
-// either we make sure that the following lines are only called once or we have
-// to cancel the underlying Stream inside getChatUpdates and remove the listener that
-// was already added.
-    final chatUpdates = ablyService.getChatUpdates();
-
-    chatUpdates.addListener(() {
-      if (chatUpdates.message != null)
-        setState(() {
-          messages.addFirst(chatUpdates.message);
-        });
-      if (messages.length > 100) {
-        messages.removeFirst();
-      }
-    });
+    chatUpdates.addListener(
+      _listener = () {
+        if (chatUpdates.message != null)
+          setState(() {
+            messages.addFirst(chatUpdates.message);
+          });
+        if (messages.length > 100) {
+          messages.removeFirst();
+        }
+      },
+    );
 
     super.didChangeDependencies();
   }
 
+  @override
+  void dispose() {
+    chatUpdates.removeListener(_listener);
+    super.dispose();
+  }
+
   void onSend() async {
-    final ablyService = Provider.of<AblyService>(context, listen: false);
+    final ablyService = getIt.get<AblyService>();
     await ablyService.sendMessage(_controller.text);
     _controller.clear();
   }
@@ -54,8 +58,7 @@ class _ChatViewState extends State<ChatView> {
       body: Column(
         children: [
           Flexible(
-            fit: FlexFit
-                .loose, // todo: this is the default of `fit` so we don't have to set it.
+            fit: FlexFit.loose, // todo: this is the default of `fit` so we don't have to set it.
             child: ListView.builder(
               reverse: true,
               itemCount: messages.length,
@@ -79,10 +82,8 @@ class _ChatViewState extends State<ChatView> {
                     decoration: InputDecoration(
                       hintText: "Type a message...",
                       hintStyle: TextStyle(color: Colors.white),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white)),
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white)),
+                      border: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
                     ),
                   ),
                 ),
@@ -120,16 +121,13 @@ class ChatMessageBubble extends StatelessWidget {
     return Container(
       margin: EdgeInsets.all(15),
       child: Column(
-        crossAxisAlignment:
-            isWriter ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isWriter ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.all(10),
             alignment: Alignment.centerLeft,
             decoration: BoxDecoration(
-              color: isWriter
-                  ? Theme.of(context).primaryColor.withOpacity(0.5)
-                  : Colors.white12,
+              color: isWriter ? Theme.of(context).primaryColor.withOpacity(0.5) : Colors.white12,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(isWriter ? radius : 0),
                 bottomRight: Radius.circular(isWriter ? 0 : radius),
