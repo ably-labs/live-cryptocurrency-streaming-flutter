@@ -1,14 +1,13 @@
 import 'dart:collection';
+
 import 'package:ably_cryptocurrency/main.dart';
-import 'package:flutter/material.dart';
-
-import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
-import 'package:intl/intl.dart' as intl;
-import 'package:syncfusion_flutter_charts/charts.dart';
-
 import 'package:ably_cryptocurrency/service/ably_service.dart';
 import 'package:ably_cryptocurrency/view/chat.dart';
 import 'package:ably_cryptocurrency/view/twitter_feed.dart';
+import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class DashboardView extends StatelessWidget {
   DashboardView({Key key}) : super(key: key);
@@ -41,7 +40,15 @@ class DashboardView extends StatelessWidget {
           preferredSize: Size.fromHeight(1.0),
         ),
       ),
-      body: GraphsList(),
+      body: FutureBuilder(
+        future: getIt.allReady(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData)
+            return Center(child: CircularProgressIndicator());
+          else
+            return GraphsList();
+        },
+      ),
     );
   }
 }
@@ -56,58 +63,40 @@ class GraphsList extends StatefulWidget {
 }
 
 class _GraphsListState extends State<GraphsList> {
-  final List<CoinUpdates> prices = [];
-  AblyService ablyService;
+  List<CoinUpdates> prices = [];
 
   @override
   void initState() {
-    getCoinPrices();
+    prices = getIt<AblyService>().getCoinUpdates();
+
     super.initState();
-  }
-
-  Future getCoinPrices() async {
-    ablyService = getIt.get<AblyService>();
-
-    if (ablyService != null && prices.isEmpty) {
-      if (mounted)
-        setState(() {
-          prices.addAll(ablyService.getCoinUpdates());
-        });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: getIt.allReady(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData)
-            return Center(child: CircularProgressIndicator());
-          else
-            return Center(
-              child: StreamBuilder<ably.ConnectionStateChange>(
-                stream: ablyService.connection,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data.event == ably.ConnectionEvent.connected) {
-                    return Align(
-                      alignment: Alignment.topCenter,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            for (CoinUpdates update in prices) CoinGraphItem(coinUpdates: update),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else if (snapshot.data.event == ably.ConnectionEvent.failed) {
-                    return Center(child: Text("No connection."));
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                },
+    return StreamBuilder<ably.ConnectionStateChange>(
+      stream: getIt<AblyService>().connection,
+      builder: (context, snapshot) {
+        if (snapshot.hasData &&
+            snapshot.data.event == ably.ConnectionEvent.connected) {
+          return Align(
+            alignment: Alignment.topCenter,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  for (CoinUpdates update in prices)
+                    CoinGraphItem(coinUpdates: update),
+                ],
               ),
-            );
-        });
+            ),
+          );
+        } else if (snapshot.data.event == ably.ConnectionEvent.failed) {
+          return Center(child: Text("No connection."));
+        } else {
+          return CircularProgressIndicator();
+        }
+      },
+    );
   }
 }
 
@@ -161,7 +150,9 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
     return Container(
       margin: EdgeInsets.all(30),
       padding: EdgeInsets.all(15),
-      decoration: BoxDecoration(color: Color(0xffEDEDED).withOpacity(0.05), borderRadius: BorderRadius.circular(8.0)),
+      decoration: BoxDecoration(
+          color: Color(0xffEDEDED).withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8.0)),
       child: queue.isEmpty
           ? Center()
           : Column(

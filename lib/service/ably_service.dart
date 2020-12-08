@@ -65,10 +65,6 @@ const List<Map> _coinTypes = [
 ];
 
 class AblyService {
-// TODO: For what can this property be used?
-  /// initialize client options for your Ably account
-  final ably.ClientOptions _clientOptions;
-
   /// initialize a realtime instance
 // TODO: I think this comment does not describe what this property is
   final ably.Realtime _realtime;
@@ -76,20 +72,24 @@ class AblyService {
   ably.RealtimeChannel _chatChannel;
 
   /// to get the connection status of the realtime instance
-  Stream<ably.ConnectionStateChange> get connection => _realtime.connection.on();
+  Stream<ably.ConnectionStateChange> get connection =>
+      _realtime.connection.on();
 
-  /// private constructor
-  AblyService._(this._realtime, this._clientOptions);
+  /// private constructor, as this class should only be initialized through
+  /// the init() method
+  AblyService._(this._realtime);
 
   static Future<AblyService> init() async {
-    final ably.ClientOptions _clientOptions = ably.ClientOptions.fromKey(APIKey);
+    /// initialize client options for your Ably account
+    final ably.ClientOptions _clientOptions =
+        ably.ClientOptions.fromKey(APIKey);
 
     /// initialize real time object
     final _realtime = ably.Realtime(options: _clientOptions);
 
     await _realtime.connect();
 
-    return AblyService._(_realtime, _clientOptions);
+    return AblyService._(_realtime);
   }
 
   ChatUpdates getChatUpdates() {
@@ -122,33 +122,37 @@ class AblyService {
     await _chatChannel.publish(data: content, name: "${_realtime.clientId}");
   }
 
+  List<CoinUpdates> _coinUpdates = [];
+
   /// Start listening to cryptocurrency prices from Coindesk hub
   List<CoinUpdates> getCoinUpdates() {
-    List<CoinUpdates> _coinUpdates = List.generate(_coinTypes.length, (index) => CoinUpdates());
+    if (_coinUpdates.isEmpty) {
+      for (int i = 0; i < _coinUpdates.length; i++) {
+        _coinUpdates[i] = CoinUpdates();
 
-    for (int i = 0; i < _coinUpdates.length; i++) {
-      String coinName = _coinTypes[i]['name'];
-      String coinCode = _coinTypes[i]['code'];
+        String coinName = _coinTypes[i]['name'];
+        String coinCode = _coinTypes[i]['code'];
 
-      //launch a channel for each coin type
-      ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinCode:usd');
+        //launch a channel for each coin type
+        ably.RealtimeChannel channel = _realtime.channels
+            .get('[product:ably-coindesk/crypto-pricing]$coinCode:usd');
 
-      //subscribe to receive channel messages
-      final messageStream = channel.subscribe();
+        //subscribe to receive channel messages
+        final messageStream = channel.subscribe();
 
-      //map each stream event to a Coin inside a list of streams
-      messageStream.where((event) => event.data != null).listen((message) {
-        _coinUpdates[i].updateCoin(
-          Coin(
-            name: coinName,
-            code: coinCode,
-            price: double.parse('${message.data}'),
-            dateTime: message.timestamp,
-          ),
-        );
-      });
+        //map each stream event to a Coin inside a list of streams
+        messageStream.where((event) => event.data != null).listen((message) {
+          _coinUpdates[i].updateCoin(
+            Coin(
+              name: coinName,
+              code: coinCode,
+              price: double.parse('${message.data}'),
+              dateTime: message.timestamp,
+            ),
+          );
+        });
+      }
     }
-
     return _coinUpdates;
   }
 }
