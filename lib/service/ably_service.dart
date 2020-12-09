@@ -68,14 +68,13 @@ class ChatUpdates extends ChangeNotifier {
 }
 
 class AblyService {
-  /// initialize a realtime instance
-  /// This instance is going to be initialized with the clientOptions from
-  /// your Ably API Key, if a key weren't provided, the realtime instance
+  /// This field is going to be initialized with the clientOptions from
+  /// your Ably API Key, if a key isn't provided, the realtime instance
   /// will not be initialized properly.
   ///
   /// It's used for every connection happening between the app and Ably's
   /// realtime services, such as:
-  /// 1. Connect to Realtime Ably servic
+  /// 1. Connect to Realtime Ably service
   /// 2. Read connection status
   /// 3. Creating new channels
   /// 4. Connecting with hubs
@@ -95,7 +94,7 @@ class AblyService {
   /// This is private constructor, as this class should only be initialized
   /// through the init() method, on the service registration at startup.
   ///
-  /// The service is registered using get_it, to make sure we get the same
+  /// The service is registered using `get_it`, to make sure we get the same
   /// instance through out the life of the app, but can be done using other
   /// solutions such as provider.
   ///
@@ -111,7 +110,7 @@ class AblyService {
     final ably.ClientOptions _clientOptions =
         ably.ClientOptions.fromKey(APIKey);
 
-    /// initialize real time object with the client options
+    /// initialize real-time object with the client options
     final _realtime = ably.Realtime(options: _clientOptions);
 
     /// connect the app to Ably's Realtime sevices supported by this SDK
@@ -126,10 +125,11 @@ class AblyService {
   List<CoinUpdates> _coinUpdates = [];
 
   /// Start listening to cryptocurrency prices from Coindesk hub
-  /// and return a list of CoinUpdates for each coin
-  /// As data are coming as a stream, we listen to the stream inside this
+  /// and return a list of `CoinUpdates` for each currency.
+  /// As data is coming as a stream, we listen to the stream inside this
   /// service, and send a ChangeNotifier object to the UI, where it can
-  /// recieve latest value from the stream without subscribing to it.
+  /// recieve latest value from the `Stream` without subscribing to it, making
+  /// the usage inside the UI easier.
   List<CoinUpdates> getCoinUpdates() {
     if (_coinUpdates.isEmpty) {
       for (int i = 0; i < _coinTypes.length; i++) {

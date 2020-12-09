@@ -5,23 +5,24 @@ import 'package:http/http.dart';
 import 'package:twitter_api/twitter_api.dart';
 
 class TwitterAPIService {
-  TwitterAPIService({this.queryTag});
+  TwitterAPIService({this.queryTag}) {
+    _twitterApi = twitterApi(
+      consumerKey: OAuthConsumerKey,
+      consumerSecret: OAuthConsumerSercert,
+      token: OAuthToken,
+      tokenSecret: OAuthTokenSecret,
+    );
+  }
 
+  twitterApi _twitterApi;
   final String queryTag;
 
   static const String path = "search/tweets.json";
 
   Future<List> getTweetsQuery() async {
     try {
-      final _twitterOauth = new twitterApi(
-        consumerKey: OAuthConsumerKey,
-        consumerSecret: OAuthConsumerSercert,
-        token: OAuthToken,
-        tokenSecret: OAuthTokenSecret,
-      );
-
       // Make the request to twitter
-      Response response = await _twitterOauth.getTwitterRequest(
+      Response response = await _twitterApi.getTwitterRequest(
         // Http Method
         "GET",
         // Endpoint you are trying to reach
