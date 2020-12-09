@@ -14,7 +14,7 @@ This project is a real example on how to use the [Ably Flutter SDK](https://pub.
 2. Singup for a [Twitter Developer account](https://developer.twitter.com), note that you won't be able to see any tweets if you don't have valid keys for Twitter's API.
 3. Clone the project.
 4. Make sure you have installed Flutter on your machine.
-5. Add your keys to `[config_example.dart](lib/config_example.dart)`, and change its name to `config.dart`.
+5. Add your keys to [config_example.dart](lib/config_example.dart), and change its name to `config.dart`.
 6. For Android, the `minSdkVersion` has been set to `24` as required by Ably's Flutter SDK.
 7. Run the app.
 
