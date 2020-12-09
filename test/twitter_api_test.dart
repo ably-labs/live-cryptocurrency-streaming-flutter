@@ -6,8 +6,6 @@ void main() {
 
     final  response = await api.getTweetsQuery();
 
-    print(response.runtimeType);
-
-    expect(response.runtimeType, List);
+    expect(response.statusCode, 200);
   });
 }

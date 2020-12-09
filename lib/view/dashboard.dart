@@ -68,34 +68,35 @@ class _GraphsListState extends State<GraphsList> {
   @override
   void initState() {
     prices = getIt<AblyService>().getCoinUpdates();
-
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<ably.ConnectionStateChange>(
-      stream: getIt<AblyService>().connection,
-      builder: (context, snapshot) {
-        if (snapshot.hasData &&
-            snapshot.data.event == ably.ConnectionEvent.connected) {
-          return Align(
-            alignment: Alignment.topCenter,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  for (CoinUpdates update in prices)
-                    CoinGraphItem(coinUpdates: update),
-                ],
+    return Center(
+      child: StreamBuilder<ably.ConnectionStateChange>(
+        stream: getIt<AblyService>().connection,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return CircularProgressIndicator();
+          } else if (snapshot.data.event == ably.ConnectionEvent.connected) {
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    for (CoinUpdates update in prices) CoinGraphItem(coinUpdates: update),
+                  ],
+                ),
               ),
-            ),
-          );
-        } else if (snapshot.data.event == ably.ConnectionEvent.failed) {
-          return Center(child: Text("No connection."));
-        } else {
-          return CircularProgressIndicator();
-        }
-      },
+            );
+          } else if (snapshot.data.event == ably.ConnectionEvent.failed) {
+            return Center(child: Text("No connection."));
+          } else {
+            return CircularProgressIndicator();
+          }
+        },
+      ),
     );
   }
 }
@@ -109,6 +110,7 @@ class CoinGraphItem extends StatefulWidget {
 
 class _CoinGraphItemState extends State<CoinGraphItem> {
   Queue<Coin> queue = Queue();
+  String coinName = '';
   VoidCallback _listener;
 
   @override
@@ -124,6 +126,8 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
         }
       },
     );
+
+    if (coinName.isEmpty) coinName = widget.coinUpdates.name;
 
     super.initState();
   }
@@ -148,77 +152,82 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(30),
+      margin: EdgeInsets.all(15),
       padding: EdgeInsets.all(15),
-      decoration: BoxDecoration(
-          color: Color(0xffEDEDED).withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8.0)),
-      child: queue.isEmpty
-          ? Center()
-          : Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    FlatButton(
-                      onPressed: () => _navigateToTwitterFeed(queue.last.name),
-                      textColor: Colors.white,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'assets/icon_awesome_twitter.png',
-                            height: 20,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            "#${widget.coinUpdates.coin.name}",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
+      height: 410,
+      decoration: BoxDecoration(color: Color(0xffEDEDED).withOpacity(0.05), borderRadius: BorderRadius.circular(8.0)),
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: 200),
+        child: queue.isEmpty
+            ? Center(
+                key: UniqueKey(),
+              )
+            : Column(
+                key: ValueKey(coinName),
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      FlatButton(
+                        onPressed: () => _navigateToTwitterFeed(coinName),
+                        textColor: Colors.white,
+                        child: Row(
+                          children: [
+                            Image.asset(
+                              'assets/icon_awesome_twitter.png',
+                              height: 20,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: 10),
+                            Text(
+                              "#$coinName",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Text(
-                      "${widget.coinUpdates.coin.price}",
-                      style: TextStyle(
-                        fontSize: 20,
+                      Text(
+                        "${widget.coinUpdates.coin.price}",
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
                       ),
+                    ],
+                  ),
+                  SizedBox(height: 25),
+                  SfCartesianChart(
+                    enableAxisAnimation: true,
+                    primaryXAxis: DateTimeAxis(
+                      dateFormat: intl.DateFormat.Hms(),
+                      intervalType: DateTimeIntervalType.minutes,
+                      desiredIntervals: 10,
+                      axisLine: AxisLine(width: 2, color: Colors.white),
+                      majorTickLines: MajorTickLines(color: Colors.transparent),
                     ),
-                  ],
-                ),
-                SizedBox(height: 25),
-                SfCartesianChart(
-                  enableAxisAnimation: true,
-                  primaryXAxis: DateTimeAxis(
-                    dateFormat: intl.DateFormat.Hms(),
-                    intervalType: DateTimeIntervalType.minutes,
-                    desiredIntervals: 10,
-                    axisLine: AxisLine(width: 2, color: Colors.white),
-                    majorTickLines: MajorTickLines(color: Colors.transparent),
-                  ),
-                  primaryYAxis: NumericAxis(
-                    desiredIntervals: 6,
-                    decimalPlaces: 4,
-                    axisLine: AxisLine(width: 2, color: Colors.white),
-                    majorTickLines: MajorTickLines(color: Colors.transparent),
-                  ),
-                  plotAreaBorderColor: Colors.white.withOpacity(0.2),
-                  plotAreaBorderWidth: 0.2,
-                  series: <LineSeries<Coin, DateTime>>[
-                    LineSeries<Coin, DateTime>(
-                      animationDuration: 0.0,
-                      width: 2,
-                      color: Theme.of(context).primaryColor,
-                      dataSource: queue.toList(),
-                      xValueMapper: (Coin coin, _) => coin.dateTime,
-                      yValueMapper: (Coin coin, _) => coin.price,
-                    )
-                  ],
-                )
-              ],
-            ),
+                    primaryYAxis: NumericAxis(
+                      desiredIntervals: 6,
+                      decimalPlaces: 4,
+                      axisLine: AxisLine(width: 2, color: Colors.white),
+                      majorTickLines: MajorTickLines(color: Colors.transparent),
+                    ),
+                    plotAreaBorderColor: Colors.white.withOpacity(0.2),
+                    plotAreaBorderWidth: 0.2,
+                    series: <LineSeries<Coin, DateTime>>[
+                      LineSeries<Coin, DateTime>(
+                        animationDuration: 0.0,
+                        width: 2,
+                        color: Theme.of(context).primaryColor,
+                        dataSource: queue.toList(),
+                        xValueMapper: (Coin coin, _) => coin.dateTime,
+                        yValueMapper: (Coin coin, _) => coin.price,
+                      )
+                    ],
+                  )
+                ],
+              ),
+      ),
     );
   }
 }
