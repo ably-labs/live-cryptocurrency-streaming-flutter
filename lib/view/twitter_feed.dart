@@ -29,7 +29,7 @@ class _TwitterFeedViewState extends State<TwitterFeedView> {
       final List response = await twitterService.getTweetsQuery();
 
       setState(() {
-        tweetsJson.addAll(response);
+        tweetsJson = response;
       });
     } catch (error) {
       setState(() {

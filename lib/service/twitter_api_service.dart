@@ -29,6 +29,7 @@ class TwitterAPIService {
         // The options for the request
         options: {
           "q": queryTag,
+          "count": "50",
         },
       );
 

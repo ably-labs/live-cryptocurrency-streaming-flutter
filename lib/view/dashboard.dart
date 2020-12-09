@@ -85,8 +85,8 @@ class _GraphsListState extends State<GraphsList> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    for (CoinUpdates update in prices) 
-                    CoinGraphItem(coinUpdates: update),
+                    for (CoinUpdates update in prices)
+                      CoinGraphItem(coinUpdates: update),
                   ],
                 ),
               ),
@@ -144,7 +144,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => TwitterFeedView(
-          hashtag: hashtag.toLowerCase(),
+          hashtag: hashtag,
         ),
       ),
     );
@@ -156,7 +156,9 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
       margin: EdgeInsets.all(15),
       padding: EdgeInsets.all(15),
       height: 410,
-      decoration: BoxDecoration(color: Color(0xffEDEDED).withOpacity(0.05), borderRadius: BorderRadius.circular(8.0)),
+      decoration: BoxDecoration(
+          color: Color(0xffEDEDED).withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8.0)),
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 200),
         child: queue.isEmpty
