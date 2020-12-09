@@ -1,5 +1,3 @@
-
-import 'package:ably_cryptocurrency/main.dart';
 import 'package:ably_cryptocurrency/service/twitter_api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:tweet_ui/models/api/tweet.dart';
@@ -28,9 +26,10 @@ class _TwitterFeedViewState extends State<TwitterFeedView> {
     final twitterService = TwitterAPIService(queryTag: widget.hashtag);
 
     try {
-      final response = await twitterService.getTweetsQuery();
+      final List response = await twitterService.getTweetsQuery();
+
       setState(() {
-        tweetsJson.addAll(response['statuses']);
+        tweetsJson.addAll(response);
       });
     } catch (error) {
       setState(() {

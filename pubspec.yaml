@@ -12,8 +12,9 @@ dependencies:
   flutter:
     sdk: flutter
   ably_flutter_plugin: ^1.0.0+dev.2
-  intl: ^0.16.1
   get_it: ^5.0.1
+  http: ^0.12.2
+  intl: ^0.16.1
   syncfusion_flutter_charts: ^18.3.52
   tweet_ui: ^2.4.1
   twitter_api: ^0.1.2

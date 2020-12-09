@@ -7,6 +7,8 @@
 /// account on https://developer.twitter.com
 /// NOTE: we are using Twitter's API 1
 /// 
+/// In some docs, the consumer key is referred to as API key
+/// 
 /// Please don't commit this file to a public repo, these keys are private
 
 const String APIKey = 'Place your Ably API key here';

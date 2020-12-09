@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:ably_cryptocurrency/config.dart';
+import 'package:http/http.dart';
 import 'package:twitter_api/twitter_api.dart';
 
 class TwitterAPIService {
@@ -10,9 +11,7 @@ class TwitterAPIService {
 
   static const String path = "search/tweets.json";
 
-// todo: What is the return type if this function? We won't do it like that twitter package and
-// make everything dynamic
-  getTweetsQuery() async {
+  Future<List> getTweetsQuery() async {
     try {
       final _twitterOauth = new twitterApi(
         consumerKey: OAuthConsumerKey,
@@ -21,11 +20,8 @@ class TwitterAPIService {
         tokenSecret: OAuthTokenSecret,
       );
 
-// todo: The Twitter package is very sloppy in on defining a return type to its functions. In reallity
-// the return type is a `Future<Response>` where Response is from the package http. We should use the correct
-// return type even if that means we have to add the http package
       // Make the request to twitter
-      Future twitterRequest = _twitterOauth.getTwitterRequest(
+      Response response = await _twitterOauth.getTwitterRequest(
         // Http Method
         "GET",
         // Endpoint you are trying to reach
@@ -35,13 +31,10 @@ class TwitterAPIService {
           "q": queryTag,
         },
       );
-// Possibly we should limit the amount of tweets that we can get returned. Probably that's something
-// that can be set by using the options
 
-      /// todo: why do you separate the wait from the call to the function above?
-      final response = await twitterRequest;
+      final decodedResponse = json.decode(response.body);
 
-      return json.decode(response.body);
+      return decodedResponse['statuses'] as List;
     } catch (error) {
       rethrow;
     }

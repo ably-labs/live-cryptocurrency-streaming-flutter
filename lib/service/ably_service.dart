@@ -141,7 +141,7 @@ class AblyService {
         ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinCode:usd');
 
         //subscribe to receive channel messages
-        final messageStream = channel.subscribe();
+        final Stream<ably.Message> messageStream = channel.subscribe();
 
         //map each stream event to a Coin inside a list of streams
         messageStream.where((event) => event.data != null).listen((message) {

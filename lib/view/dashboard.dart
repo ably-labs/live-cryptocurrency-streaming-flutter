@@ -85,7 +85,8 @@ class _GraphsListState extends State<GraphsList> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    for (CoinUpdates update in prices) CoinGraphItem(coinUpdates: update),
+                    for (CoinUpdates update in prices) 
+                    CoinGraphItem(coinUpdates: update),
                   ],
                 ),
               ),
