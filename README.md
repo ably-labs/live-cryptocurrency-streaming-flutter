@@ -24,4 +24,4 @@ For help getting started with Flutter, visit the
 samples, guidance on mobile development, and a full API reference.
 
 ## App Screenshots
-<img src="preview_images/dashboard.gif"  width="280" alt="realtime dashboard"> <img src="preview_images/chat.gif"  width="280" alt="public chat room"> <img src="preview_images/twitter.gif"  width="280" alt="twitter feed">
+<img src="preview_images/dashboard.gif"  width="250" alt="realtime dashboard"> <img src="preview_images/chat.gif"  width="250" alt="public chat room"> <img src="preview_images/twitter.gif"  width="250" alt="twitter feed">
