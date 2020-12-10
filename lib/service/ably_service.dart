@@ -1,8 +1,8 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 import 'package:ably_cryptocurrency/config.dart';
 import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
-import 'package:flutter/material.dart';
 
 /// In case more cryptocurrencies are added to Coindesk hub, you can
 /// add them directly here, and the app will display the corresponding graph
