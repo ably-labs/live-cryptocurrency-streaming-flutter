@@ -12,7 +12,7 @@ const List<Map> _coinTypes = [
     "code": "btc",
   },
   {
-    "name": "Etherum",
+    "name": "Etheruem",
     "code": "eth",
   },
   {
@@ -101,14 +101,14 @@ class AblyService {
   /// Please refer to main.dart to see how registration has been done.
   AblyService._(this._realtime);
 
-  /// The method to be called in order to create AblyService instance.
-  /// This service is only initialized with this method, and to make it's
+  /// The method to be called in order to create `AblyService` instance.
+  /// This service is only initialized with this method, and  it's
   /// declared as static to make it accessible without making an instance
-  /// of AblyService.
+  /// of `AblyService`.
   static Future<AblyService> init() async {
     /// initialize client options for your Ably account using your private API key
     final ably.ClientOptions _clientOptions =
-        ably.ClientOptions.fromKey(APIKey);
+        ably.ClientOptions.fromKey(AplyAPIKey);
 
     /// initialize real-time object with the client options
     final _realtime = ably.Realtime(options: _clientOptions);
@@ -116,16 +116,17 @@ class AblyService {
     /// connect the app to Ably's Realtime sevices supported by this SDK
     await _realtime.connect();
 
-    /// reaturn the single instance of AblyService with the local _realtime instance to
-    /// be set as the value of the service's _realtime property, so it can be used in
+    /// reaturn the single instance of AblyService with the local `_realtime` instance to
+    /// be set as the value of the service's `_realtime` property, so it can be used in
     /// all methods.
     return AblyService._(_realtime);
   }
 
   List<CoinUpdates> _coinUpdates = [];
 
-  /// Start listening to cryptocurrency prices from Coindesk hub
-  /// and return a list of `CoinUpdates` for each currency.
+  /// Start listening to cryptocurrency prices from Coindesk hub and return 
+  /// a list of `CoinUpdates` for each currency.
+  /// 
   /// As data is coming as a stream, we listen to the stream inside this
   /// service, and send a ChangeNotifier object to the UI, where it can
   /// recieve latest value from the `Stream` without subscribing to it, making
@@ -162,7 +163,9 @@ class AblyService {
 
   /// To get chat messages posted to the [public-chat] channel,
   /// first find (or create) the channel if no one else has created it yet.
+  /// 
   /// Secondly, subscribe to the channel. Finally, listen to any updates coming.
+  /// 
   /// This method is called one time when the chat page is opened, it doesn't
   /// read history (messages sent previously) so each time you leave and get
   /// back to chat page past messages will be lost.
