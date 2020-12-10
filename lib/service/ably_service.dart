@@ -12,7 +12,7 @@ const List<Map> _coinTypes = [
     "code": "btc",
   },
   {
-    "name": "Ethurum",
+    "name": "Etherum",
     "code": "eth",
   },
   {
@@ -68,15 +68,13 @@ class ChatUpdates extends ChangeNotifier {
 }
 
 class AblyService {
-  
-  /// initialize a realtime instance
-  /// This instance is going to be initialized with the clientOptions from
-  /// your Ably API Key, if a key weren't provided, the realtime instance
+  /// This field is going to be initialized with the clientOptions from
+  /// your Ably API Key, if a key isn't provided, the realtime instance
   /// will not be initialized properly.
   ///
   /// It's used for every connection happening between the app and Ably's
   /// realtime services, such as:
-  /// 1. Connect to Realtime Ably servic
+  /// 1. Connect to Realtime Ably service
   /// 2. Read connection status
   /// 3. Creating new channels
   /// 4. Connecting with hubs
@@ -90,12 +88,13 @@ class AblyService {
   /// [disconnected, suspended, closing, closed, failed, update]
   /// It's necessary to check for the connection status and make sure
   /// the user knows what's happening in case of failure.
-  Stream<ably.ConnectionStateChange> get connection => _realtime.connection.on();
+  Stream<ably.ConnectionStateChange> get connection =>
+      _realtime.connection.on();
 
   /// This is private constructor, as this class should only be initialized
   /// through the init() method, on the service registration at startup.
   ///
-  /// The service is registered using get_it, to make sure we get the same
+  /// The service is registered using `get_it`, to make sure we get the same
   /// instance through out the life of the app, but can be done using other
   /// solutions such as provider.
   ///
@@ -108,9 +107,10 @@ class AblyService {
   /// of AblyService.
   static Future<AblyService> init() async {
     /// initialize client options for your Ably account using your private API key
-    final ably.ClientOptions _clientOptions = ably.ClientOptions.fromKey(APIKey);
+    final ably.ClientOptions _clientOptions =
+        ably.ClientOptions.fromKey(APIKey);
 
-    /// initialize real time object with the client options
+    /// initialize real-time object with the client options
     final _realtime = ably.Realtime(options: _clientOptions);
 
     /// connect the app to Ably's Realtime sevices supported by this SDK
@@ -125,10 +125,11 @@ class AblyService {
   List<CoinUpdates> _coinUpdates = [];
 
   /// Start listening to cryptocurrency prices from Coindesk hub
-  /// and return a list of CoinUpdates for each coin
-  /// As data are coming as a stream, we listen to the stream inside this
+  /// and return a list of `CoinUpdates` for each currency.
+  /// As data is coming as a stream, we listen to the stream inside this
   /// service, and send a ChangeNotifier object to the UI, where it can
-  /// recieve latest value from the stream without subscribing to it.
+  /// recieve latest value from the `Stream` without subscribing to it, making
+  /// the usage inside the UI easier.
   List<CoinUpdates> getCoinUpdates() {
     if (_coinUpdates.isEmpty) {
       for (int i = 0; i < _coinTypes.length; i++) {
@@ -138,7 +139,8 @@ class AblyService {
         _coinUpdates.add(CoinUpdates(name: coinName));
 
         //launch a channel for each coin type
-        ably.RealtimeChannel channel = _realtime.channels.get('[product:ably-coindesk/crypto-pricing]$coinCode:usd');
+        ably.RealtimeChannel channel = _realtime.channels
+            .get('[product:ably-coindesk/crypto-pricing]$coinCode:usd');
 
         //subscribe to receive channel messages
         final Stream<ably.Message> messageStream = channel.subscribe();
@@ -185,7 +187,7 @@ class AblyService {
   }
 
   /// connect to the same chat channel to publish new messages.
-  /// The name of the channel is important, if it wasn't the same one subscribed 
+  /// The name of the channel is important, if it wasn't the same one subscribed
   /// to in [getChatUpdates] we won't get the published messages.
   Future sendMessage(String content) async {
     _realtime.channels.get('public-chat');
