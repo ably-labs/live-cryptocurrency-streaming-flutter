@@ -19,7 +19,12 @@ class _ChatViewState extends State<ChatView> {
   VoidCallback _listener;
 
   @override
-  void didChangeDependencies() async {
+  void initState() {
+    super.initState();
+    listenToChatMessages();
+  }
+
+  Future<void> listenToChatMessages() async {
     chatUpdates = getIt.get<AblyService>().getChatUpdates();
 
     chatUpdates.addListener(
@@ -33,8 +38,6 @@ class _ChatViewState extends State<ChatView> {
         }
       },
     );
-
-    super.didChangeDependencies();
   }
 
   @override
