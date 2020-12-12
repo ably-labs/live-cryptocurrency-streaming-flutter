@@ -12,7 +12,7 @@ const List<Map> _coinTypes = [
     "code": "btc",
   },
   {
-    "name": "Etheruem",
+    "name": "Ethereum",
     "code": "eth",
   },
   {

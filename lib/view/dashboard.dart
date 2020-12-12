@@ -79,7 +79,7 @@ class _GraphsListState extends State<GraphsList> {
         stream: getIt<AblyService>().connection,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return CircularProgressIndicator();
+            return SizedBox();
           } else if (snapshot.data.event == ably.ConnectionEvent.connected) {
             return SingleChildScrollView(
               child: Column(
@@ -158,10 +158,20 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
           color: Color(0xffEDEDED).withOpacity(0.05),
           borderRadius: BorderRadius.circular(8.0)),
       child: AnimatedSwitcher(
-        duration: Duration(milliseconds: 200),
+        duration: Duration(milliseconds: 500),
         child: queue.isEmpty
             ? Center(
                 key: UniqueKey(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(
+                      height: 24,
+                    ),
+                    Text('Waiting for coin data...')
+                  ],
+                ),
               )
             : Column(
                 key: ValueKey(coinName),
@@ -192,7 +202,7 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                       AnimatedSwitcher(
                         duration: Duration(milliseconds: 200),
                         child: Text(
-                          "${widget.coinUpdates.coin.price}\$",
+                          "\$${widget.coinUpdates.coin.price.toStringAsFixed(2)}",
                           key: ValueKey(widget.coinUpdates.coin.price),
                           style: TextStyle(
                             fontSize: 20,
@@ -212,8 +222,9 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                       majorTickLines: MajorTickLines(color: Colors.transparent),
                     ),
                     primaryYAxis: NumericAxis(
-                      desiredIntervals: 6,
-                      decimalPlaces: 4,
+                      numberFormat: intl.NumberFormat('##,###.00'),
+                      desiredIntervals: 5,
+                      decimalPlaces: 2,
                       axisLine: AxisLine(width: 2, color: Colors.white),
                       majorTickLines: MajorTickLines(color: Colors.transparent),
                     ),
