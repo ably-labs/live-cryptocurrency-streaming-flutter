@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return MaterialApp(
-      title: 'Ably',
+      title: 'Live cryptocurrency by Ably',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: Color(0xffFF5416),

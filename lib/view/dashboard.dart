@@ -25,7 +25,8 @@ class DashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Ably"),
+        title:
+            Text("Live cryptocurrency by Ably", style: TextStyle(fontSize: 16)),
         actions: [
           IconButton(
             icon: Icon(Icons.chat_bubble),
@@ -188,10 +189,14 @@ class _CoinGraphItemState extends State<CoinGraphItem> {
                           ],
                         ),
                       ),
-                      Text(
-                        "${widget.coinUpdates.coin.price}",
-                        style: TextStyle(
-                          fontSize: 20,
+                      AnimatedSwitcher(
+                        duration: Duration(milliseconds: 200),
+                        child: Text(
+                          "${widget.coinUpdates.coin.price}\$",
+                          key: ValueKey(widget.coinUpdates.coin.price),
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
                         ),
                       ),
                     ],
