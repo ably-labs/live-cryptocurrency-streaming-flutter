@@ -80,15 +80,12 @@ class _GraphsListState extends State<GraphsList> {
           if (!snapshot.hasData) {
             return CircularProgressIndicator();
           } else if (snapshot.data.event == ably.ConnectionEvent.connected) {
-            return Align(
-              alignment: Alignment.topCenter,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    for (CoinUpdates update in prices)
-                      CoinGraphItem(coinUpdates: update),
-                  ],
-                ),
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  for (CoinUpdates update in prices)
+                    CoinGraphItem(coinUpdates: update),
+                ],
               ),
             );
           } else if (snapshot.data.event == ably.ConnectionEvent.failed) {

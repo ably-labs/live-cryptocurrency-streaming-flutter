@@ -145,7 +145,7 @@ class AblyService {
         //subscribe to receive channel messages
         final Stream<ably.Message> messageStream = channel.subscribe();
 
-        //map each stream event to a Coin inside a list of streams
+        //map each stream event to a Coin and start listining
         messageStream.where((event) => event.data != null).listen((message) {
           _coinUpdates[i].updateCoin(
             Coin(
