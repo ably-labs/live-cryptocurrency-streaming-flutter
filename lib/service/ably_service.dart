@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 
 import 'package:ably_cryptocurrency/config.dart';
 import 'package:ably_flutter_plugin/ably_flutter_plugin.dart' as ably;
+import 'package:flutter/foundation.dart';
 
 /// In case more cryptocurrencies are added to Coindesk hub, you can
 /// add them directly here, and the app will display the corresponding graph
@@ -108,7 +108,7 @@ class AblyService {
   static Future<AblyService> init() async {
     /// initialize client options for your Ably account using your private API key
     final ably.ClientOptions _clientOptions =
-        ably.ClientOptions.fromKey(AplyAPIKey);
+        ably.ClientOptions.fromKey(AblyAPIKey);
 
     /// initialize real-time object with the client options
     final _realtime = ably.Realtime(options: _clientOptions);
@@ -124,9 +124,9 @@ class AblyService {
 
   List<CoinUpdates> _coinUpdates = [];
 
-  /// Start listening to cryptocurrency prices from Coindesk hub and return 
+  /// Start listening to cryptocurrency prices from Coindesk hub and return
   /// a list of `CoinUpdates` for each currency.
-  /// 
+  ///
   /// As data is coming as a stream, we listen to the stream inside this
   /// service, and send a ChangeNotifier object to the UI, where it can
   /// recieve latest value from the `Stream` without subscribing to it, making
@@ -163,9 +163,9 @@ class AblyService {
 
   /// To get chat messages posted to the [public-chat] channel,
   /// first find (or create) the channel if no one else has created it yet.
-  /// 
+  ///
   /// Secondly, subscribe to the channel. Finally, listen to any updates coming.
-  /// 
+  ///
   /// This method is called one time when the chat page is opened, it doesn't
   /// read history (messages sent previously) so each time you leave and get
   /// back to chat page past messages will be lost.
