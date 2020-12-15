@@ -21,8 +21,8 @@ class _ChatViewState extends State<ChatView> {
   @override
   void initState() {
     super.initState();
-    
-    chatUpdates = getIt.get<AblyService>().getChatUpdates();
+
+    chatUpdates = getIt<AblyService>().getChatUpdates();
 
     chatUpdates.addListener(
       _listener = () {
@@ -58,7 +58,6 @@ class _ChatViewState extends State<ChatView> {
       body: Column(
         children: [
           Flexible(
-            fit: FlexFit.loose, // todo: this is the default of `fit` so we don't have to set it.
             child: ListView.builder(
               reverse: true,
               itemCount: messages.length,
@@ -82,8 +81,10 @@ class _ChatViewState extends State<ChatView> {
                     decoration: InputDecoration(
                       hintText: "Type a message...",
                       hintStyle: TextStyle(color: Colors.white),
-                      border: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
-                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white)),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white)),
                     ),
                   ),
                 ),
@@ -121,13 +122,16 @@ class ChatMessageBubble extends StatelessWidget {
     return Container(
       margin: EdgeInsets.all(15),
       child: Column(
-        crossAxisAlignment: isWriter ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            isWriter ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.all(10),
             alignment: Alignment.centerLeft,
             decoration: BoxDecoration(
-              color: isWriter ? Theme.of(context).primaryColor.withOpacity(0.5) : Colors.white12,
+              color: isWriter
+                  ? Theme.of(context).primaryColor.withOpacity(0.5)
+                  : Colors.white12,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(isWriter ? radius : 0),
                 bottomRight: Radius.circular(isWriter ? 0 : radius),

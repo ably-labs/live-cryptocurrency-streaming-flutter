@@ -8,7 +8,7 @@ class TwitterAPIService {
   TwitterAPIService({this.queryTag}) {
     _twitterApi = twitterApi(
       consumerKey: OAuthConsumerKey,
-      consumerSecret: OAuthConsumerSercert,
+      consumerSecret: OAuthConsumerSecret,
       token: OAuthToken,
       tokenSecret: OAuthTokenSecret,
     );

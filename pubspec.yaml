@@ -16,10 +16,7 @@ dependencies:
   http: ^0.12.2
   intl: ^0.16.1
   syncfusion_flutter_charts: ^18.3.52
-  tweet_ui:
-    git:
-      url: https://github.com/escamoteur/tweet_ui
-      ref: add_overflow_to_RetweetInformation
+  tweet_ui: ^2.4.2
   twitter_api: ^0.1.2
 
 dev_dependencies:
