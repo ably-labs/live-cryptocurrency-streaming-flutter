@@ -9,7 +9,7 @@ The app has the following features:
 
 ## Getting Started
 
-This project is a real example on how to use the [Ably Flutter SDK](https://pub.dev/packages/ably_flutter_plugin). To get started:
+This project is a real example on how to use the [Ably Flutter SDK](https://pub.dev/packages/ably_flutter). To get started:
 1. [Signup](https://www.ably.io) to get your Ably API Key.
 2. Subscribe to [Cryptocurrency hub](https://www.ably.io/hub/ably-coindesk/crypto-pricing), note that if you didn't do this step, you won't receive data even with the API Key.
 3. Sing-up for a [Twitter Developer account](https://developer.twitter.com), note that you won't be able to see any tweets if you don't have valid keys for Twitter's API.
